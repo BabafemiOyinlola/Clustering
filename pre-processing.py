@@ -86,7 +86,11 @@ class Preprocessing:
         return data_copy
 
     # PCA method allows us to construct independent new variables
+    
+    #THIS WAS DONE USING SCKITLEARN. USE SCIPY TO IMPLEMENT YOURSELF!!!!
     def PCA(self, data):
+        # Observe and analyse the separability of the data and compare with the separability of the original data. 
+        # What are the visualisation benefits from using PCA?
         pca = PCA(n_components=2) #we have two components
         pca.fit(data)
         cof = pca.components_
@@ -94,6 +98,16 @@ class Preprocessing:
         trasform_data = pca.transform(data)
 
         return trasform_data
+    
+    def percentage_of_variance(self, data):
+        pca = PCA(n_components=2) #we have two components
+        pca.fit(data)
+        # cof = pca.components_
+        plt.bar([1, 2], pca.explained_variance_ratio_, tick_label= [1, 2])
+        plt.xlabel("Principal Component")
+        plt.ylabel("% Variance Explained")
+
+        plt.show()
 
     #Plot 
     def plot(self, data, x_axis, y_axis, title):
@@ -116,6 +130,8 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 test.plot(transformed_data, "Ist PC", "2nd PC", "PCA plot")
+test.percentage_of_variance(centralized_data)
+
 #Correlation between coefficients
 #Ideally, if all features are completely independent from each other, the C matrix should be equal to the identity matrix
 print(np.corrcoef(centralized_data, rowvar=False)) #this shows that the features are not completely independent of each other
