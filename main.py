@@ -14,9 +14,10 @@ transformed_data = test.PCA(centralized_data)
 
 kmeans = KMeans(3)
 clusters = kmeans.assign_cluster(standardised_data)
+clustered_points = kmeans.iterate(standardised_data)
 # clusters2 = kmeans.assign_cluster(normalised_data)
 
-kmeans.plot(standardised_data, "Standardised data")
+kmeans.plot(clustered_points, "Clustered data")
 print(clusters)
 # for i in range(len(clusters)):
 #     print(clusters[i])
