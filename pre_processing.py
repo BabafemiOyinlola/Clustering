@@ -86,15 +86,15 @@ class Preprocessing:
         return data_copy
 
     # PCA method allows us to construct independent new variables
-    
-    #THIS WAS DONE USING SCKITLEARN. USE SCIPY TO IMPLEMENT YOURSELF!!!!
+
+    #THIS WAS DONE USING SCKITLEARN. IMPLEMENT YOURSELF!!!!
     def PCA(self, data):
         # Observe and analyse the separability of the data and compare with the separability of the original data. 
         # What are the visualisation benefits from using PCA?
         pca = PCA(n_components=2) #we have two components
         pca.fit(data)
         cof = pca.components_
-        print(cof)
+        # print(cof)
         trasform_data = pca.transform(data)
 
         return trasform_data
@@ -123,19 +123,22 @@ class Preprocessing:
 
     
 
-test = Preprocessing("Joensuu.txt")
-dataset = test.read_data()
-standardised_data = test.standardize_data(dataset)
-normalised_data = test.normalise_data(standardised_data)
-centralized_data = test.centralise(normalised_data)
-transformed_data = test.PCA(centralized_data)
-test.plot(transformed_data, "Ist PC", "2nd PC", "PCA plot")
-test.percentage_of_variance(centralized_data)
+# test = Preprocessing("Joensuu.txt")
+# dataset = test.read_data()
+# standardised_data = test.standardize_data(dataset)
+# normalised_data = test.normalise_data(standardised_data)
+# centralized_data = test.centralise(normalised_data)
+# transformed_data = test.PCA(centralized_data)
+# test.plot(transformed_data, "Ist PC", "2nd PC", "PCA plot")
+# test.percentage_of_variance(centralized_data)
+
+# centroids = normalised_data[np.random.choice(normalised_data.shape[0], 3, False)]
+# print("Centroids: ", centroids)
 
 #Correlation between coefficients
 #Ideally, if all features are completely independent from each other, the C matrix should be equal to the identity matrix
-print(np.corrcoef(centralized_data, rowvar=False)) #this shows that the features are not completely independent of each other
-# test.plot(normalised_data)
+# print(np.corrcoef(centralized_data, rowvar=False)) #this shows that the features are not completely independent of each other
+# test.plot(normalised_data, "Latitude", "Longitude", "Lon & Lat")
 
 # print("Standardized data: ")
 # for i in range(len(standardised_data)):
@@ -146,4 +149,3 @@ print(np.corrcoef(centralized_data, rowvar=False)) #this shows that the features
 
 # for i in range(len(normalised_data)):
 #     print(normalised_data[i])
-
