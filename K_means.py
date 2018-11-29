@@ -127,6 +127,7 @@ class KMeans:
         self.label_points(data)
         diff = self.choose_new_centroid()
         while(max(diff) > 0.001):
+            
             diff = self.choose_new_centroid()
         return(self.points)
 
