@@ -39,6 +39,7 @@ class KMeans:
                     dist_min = dist
                     label_index = j
 
+            #data is lost here
             # self.cluster.update({str(data[i, :]): label_index})
             self.cluster[str(data[i, :])] = label_index
         return self.cluster
@@ -68,11 +69,7 @@ class KMeans:
        
         for i in range(self.k):
             plt.plot(self.centroids[i][0], self.centroids[0][1],centroid_colours[i])
-        # plt.plot(self.centroids[0][0], self.centroids[0][1],'mx')
-        # plt.plot(self.centroids[1][1,0], self.centroids[1][0,1],'gx')
-        # plt.plot(self.centroids[2][1,0], self.centroids[2][0,1], 'yx')
-        # plt.plot(self.centroids[3][1,0], self.centroids[1][0,1],'wx')
-        # plt.plot(self.centroids[4][1,0], self.centroids[2][0,1], 'kx')
+
         plt.title(title)
         plt.show()
 
@@ -108,9 +105,6 @@ class KMeans:
             count = count + 1
 
         self.grouped_points = point_in_clusters
-        # print("ALL: ", str(len(point_in_clusters[0]) + len(point_in_clusters[1]) + len(point_in_clusters[2])))
-
-        # print(cluster_labels)
         self.points = points
         self.point_labels = cluster_labels
         
