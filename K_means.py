@@ -47,16 +47,32 @@ class KMeans:
     def plot(self, data, title):
         plt.figure(figsize=(6,4))
         self.label_points(data)
+        col = ""
         for i in range(self.points.shape[0]):
-            col = "red"
-            if(self.point_labels[i] ==  1.0):
+            if(self.point_labels[i] ==  0.0):
                 col = "blue"
+            elif(self.point_labels[i] ==  1.0):
+                col = "red"
             elif(self.point_labels[i] ==  2.0):
                 col = "black"
+            elif(self.point_labels[i] ==  3.0):
+                col = "brown"
+            elif(self.point_labels[i] ==  4.0):
+                col = "green"
+            elif(self.point_labels[i] ==  5.0):
+                col = "cyan"
+
             plt.plot(self.points[i,0],self.points[i,1],'.', color = col)
-        plt.plot(self.centroids[0,0], self.centroids[0,1],'mx')
-        plt.plot(self.centroids[1,0], self.centroids[1,1],'gx')
-        plt.plot(self.centroids[2,0], self.centroids[2,1], 'yx')
+      
+        centroid_colours = ['mx', 'gx', 'yx', 'rx', 'bx', 'kx', 'wx']
+       
+        for i in range(self.k):
+            plt.plot(self.centroids[i][0], self.centroids[0][1],centroid_colours[i])
+        # plt.plot(self.centroids[0][0], self.centroids[0][1],'mx')
+        # plt.plot(self.centroids[1][1,0], self.centroids[1][0,1],'gx')
+        # plt.plot(self.centroids[2][1,0], self.centroids[2][0,1], 'yx')
+        # plt.plot(self.centroids[3][1,0], self.centroids[1][0,1],'wx')
+        # plt.plot(self.centroids[4][1,0], self.centroids[2][0,1], 'kx')
         plt.title(title)
         plt.show()
 
@@ -116,7 +132,7 @@ class KMeans:
 
             new_centroids[i] = [(total_x/len(temp)), (total_y)/len(temp)]
 
-        diff_btw_centroids = new_centroids - self.centroids
+        diff_btw_centroids = np.asarray(new_centroids, dtype=float) - np.asarray(self.centroids, dtype=float)
 
         self.centroids = new_centroids
 
@@ -126,8 +142,15 @@ class KMeans:
         self.assign_cluster(data)
         self.label_points(data)
         diff = self.choose_new_centroid()
-        while(max(diff) > 0.001):
+        diff = np.asarray(diff, dtype=float)
+        # diff_matrix = [[] for _ in range(self.k)]
+        # for i in range(len(diff_matrix)):
+        #     diff_matrix[i] = np.arange(0.001, 0.001, 0.001).reshape((self.k, self.k))
+
+        # while(max(diff) > 0.001):
+        for i in range(500):
             diff = self.choose_new_centroid()
         return(self.points)
 
 
+#Check out the cluster .update dictionary and append instead
