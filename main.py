@@ -1,5 +1,6 @@
 from pre_processing import *
 from K_means import *
+from classify_mushroom import *
 
 test = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/Joensuu.txt")
 dataset = test.read_data()
@@ -8,16 +9,14 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-# centroids = normalised_data[np.random.choice(normalised_data.shape[0], 3, False)]
-# print("Centroids: ", centroids)
+# kmeans = KMeans(4) # 4 works best for now till iterate is fixed
+# clusters = kmeans.assign_cluster(standardised_data)
+# clustered_points = kmeans.iterate(standardised_data, 0.0001)
+# kmeans.plot(clustered_points, "Clustered data")
 
 
-kmeans = KMeans(3)
-clusters = kmeans.assign_cluster(standardised_data)
-clustered_points = kmeans.iterate(standardised_data)
-# clusters2 = kmeans.assign_cluster(normalised_data)
-
-kmeans.plot(clustered_points, "Clustered data")
-print(clusters)
-# for i in range(len(clusters)):
-#     print(clusters[i])
+mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.txt")
+mushroom_data = mushroom_init.read_mushroom_data()
+mushroom = ClassifyMushroom(mushroom_data)
+# pred1 = mushroom.random_forest_classifier()
+pred2 = mushroom.logistic_regression()
