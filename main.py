@@ -18,5 +18,5 @@ transformed_data = test.PCA(centralized_data)
 mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.txt")
 mushroom_data = mushroom_init.read_mushroom_data()
 mushroom = ClassifyMushroom(mushroom_data)
-missing_vals = mushroom.handle_missing_data()
-a = "hold"
+# pred1 = mushroom.random_forest_classifier()
+pred2 = mushroom.logistic_regression()
