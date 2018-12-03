@@ -39,6 +39,7 @@ class KMeans:
                     dist_min = dist
                     label_index = j
 
+            #data is lost here
             # self.cluster.update({str(data[i, :]): label_index})
             self.cluster[str(data[i, :])] = label_index
         return self.cluster
@@ -103,7 +104,6 @@ class KMeans:
             count = count + 1
 
         self.grouped_points = point_in_clusters
-
         self.points = points
         self.point_labels = cluster_labels
         
