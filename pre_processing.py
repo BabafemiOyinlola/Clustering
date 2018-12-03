@@ -85,7 +85,7 @@ class Preprocessing:
 
         return data_copy
 
-    # PCA method allows us to construct independent new variables
+    # PCA method allows construction of independent new variables
 
     #THIS WAS DONE USING SCKITLEARN. IMPLEMENT YOURSELF!!!!
     def PCA(self, data):
@@ -120,32 +120,20 @@ class Preprocessing:
         fig.tight_layout()
        
         plt.show()
+        
+    def read_mushroom_data(self):
+        read = open(self.filepath, "r")
+        content = read.readlines()
+        if(len(content) == 0):
+            return
+        else:
+            len_content = len(content[0].rstrip().split(",")) #Split the first line in content to obtain number of columns/ features
+            data_array = np.empty((len(content), len_content), dtype=str) #Create an empty array to store dataitems
+            for line in range(len(content)):
+                data_array[line] = content[line].split(",")
 
-    
-
-# test = Preprocessing("Joensuu.txt")
-# dataset = test.read_data()
-# standardised_data = test.standardize_data(dataset)
-# normalised_data = test.normalise_data(standardised_data)
-# centralized_data = test.centralise(normalised_data)
-# transformed_data = test.PCA(centralized_data)
-# test.plot(transformed_data, "Ist PC", "2nd PC", "PCA plot")
-# test.percentage_of_variance(centralized_data)
-
-# centroids = normalised_data[np.random.choice(normalised_data.shape[0], 3, False)]
-# print("Centroids: ", centroids)
-
-#Correlation between coefficients
-#Ideally, if all features are completely independent from each other, the C matrix should be equal to the identity matrix
-# print(np.corrcoef(centralized_data, rowvar=False)) #this shows that the features are not completely independent of each other
-# test.plot(normalised_data, "Latitude", "Longitude", "Lon & Lat")
-
-# print("Standardized data: ")
-# for i in range(len(standardised_data)):
-#     print(standardised_data[i])
-
-# print("\n\n")
-# print("Normalised data: ")
-
-# for i in range(len(normalised_data)):
-#     print(normalised_data[i])
+            read.close()
+            labels = data_array[:, 0]
+            features =  np.delete(data_array, obj=0, axis=1)
+            data_array = []
+            return (features, labels)

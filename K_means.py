@@ -42,7 +42,7 @@ class KMeans:
             # self.cluster.update({str(data[i, :]): label_index})
             self.cluster[str(data[i, :])] = label_index
         return self.cluster
-    
+  
     #make this generic
     def plot(self, data, title):
         plt.figure(figsize=(6,4))
@@ -68,11 +68,6 @@ class KMeans:
        
         for i in range(self.k):
             plt.plot(self.centroids[i][0], self.centroids[0][1],centroid_colours[i])
-        # plt.plot(self.centroids[0][0], self.centroids[0][1],'mx')
-        # plt.plot(self.centroids[1][1,0], self.centroids[1][0,1],'gx')
-        # plt.plot(self.centroids[2][1,0], self.centroids[2][0,1], 'yx')
-        # plt.plot(self.centroids[3][1,0], self.centroids[1][0,1],'wx')
-        # plt.plot(self.centroids[4][1,0], self.centroids[2][0,1], 'kx')
         plt.title(title)
         plt.show()
 
@@ -108,9 +103,7 @@ class KMeans:
             count = count + 1
 
         self.grouped_points = point_in_clusters
-        # print("ALL: ", str(len(point_in_clusters[0]) + len(point_in_clusters[1]) + len(point_in_clusters[2])))
 
-        # print(cluster_labels)
         self.points = points
         self.point_labels = cluster_labels
         
@@ -118,7 +111,7 @@ class KMeans:
 
     def choose_new_centroid(self):
         #choose new centroids
-        new_centroids = [[] for _ in range(self.k)] 
+        new_centroids = np.empty((self.k, 2)) 
 
         total_x = 0
         total_y = 0
@@ -130,25 +123,36 @@ class KMeans:
                 total_x = total_x + temp[j][0]
                 total_y = total_y + temp[j][1]
 
-            new_centroids[i] = [(total_x/len(temp)), (total_y)/len(temp)]
+            new_centroids[i][0] = total_x/len(temp)
+            new_centroids[i][1] = total_y/len(temp)
 
-        diff_btw_centroids = np.asarray(new_centroids, dtype=float) - np.asarray(self.centroids, dtype=float)
+        diff_btw_centroids = np.empty((self.k, 2))
+        for i in range(self.k):
+            diff_btw_centroids[i] = new_centroids[i] - self.centroids[i]
+        
 
         self.centroids = new_centroids
 
-        return (new_centroids, diff_btw_centroids)
+        return (diff_btw_centroids)
 
     def iterate(self, data, threshold=0.001):
         self.assign_cluster(data)
         self.label_points(data)
+        temp1 = self.choose_new_centroid()
         diff = self.choose_new_centroid()
-        diff = np.asarray(diff, dtype=float)
-        # diff_matrix = [[] for _ in range(self.k)]
-        # for i in range(len(diff_matrix)):
-        #     diff_matrix[i] = np.arange(0.001, 0.001, 0.001).reshape((self.k, self.k))
 
-        # while(max(diff) > 0.001):
-        for i in range(500):
+        grt_threshold = [True]*(self.k)
+        all_thres = True
+        while all_thres:
+            for i in range(len(diff)):
+                if(np.max(diff[i]) <= threshold):
+                    grt_threshold[i] = False
+
+            if True not in grt_threshold:
+                all_thres = False
+
+            temp = self.choose_new_centroid()
+
             diff = self.choose_new_centroid()
         return(self.points)
 
