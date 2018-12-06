@@ -6,36 +6,41 @@ import numpy as np
 
 
 class HierachicalClustering:
-    def __init__(self):
-        
+    def __init__(self, data):
+        self.data = data
         return
     
-    def distance(self, data):
-
-        rows = data.shape[0]
-        cols = data.shape[1]
+    def distance(self):
+        rows = self.data.shape[0]
+        cols = self.data.shape[1]
         
         distanceMatrix = np.zeros((rows,rows))
 
         for i in range(rows):
             for j in range(rows):
-
                 sumTotal = 0
-
                 for c in range(cols):
-
-                    sumTotal = sumTotal + pow((data[i,c] - data[j,c]),2)
-
+                    sumTotal = sumTotal + pow((self.data[i,c] - self.data[j,c]),2)
                 distanceMatrix[i,j] = math.sqrt(sumTotal)
 
         return distanceMatrix
 
-    def calc(self, data):
-        condenced_distance = sd.squareform(self.distance(data))
+    def calc(self):
+        distance = self.distance()
+        condenced_distance = sd.squareform(distance)
         linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
-        plt.figure(figsize=(300,100))
-        sc.hierarchy.dendrogram(linkage)
+        sc.hierarchy.dendrogram(linkage)  
+        # plt.savefig("Location dendrogram without pruning")      
+        #prune the tree here
+        print("Prunning tree")
+        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.15)
+        plt.savefig("Location dendrogram prunned at p=0.25")  
+        sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 2)
+        plt.savefig("Location dendrogram prunned at level p=4") 
+        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
+        plt.savefig("Location dendrogram prunned at p=0.15")
         plt.show()
+        return
 
 
 
