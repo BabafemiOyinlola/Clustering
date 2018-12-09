@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn import metrics, preprocessing
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, KFold, cross_val_score
 
 class  ClassifyMushroom:
     def __init__ (self, data):
@@ -27,7 +27,12 @@ class  ClassifyMushroom:
             features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
 
         hot_encoder = preprocessing.OneHotEncoder()
-        hot_encoder.fit_transform(features_encoded)
+        features_encoded = hot_encoder.fit_transform(features_encoded)
+
+        # reduce dimentionality
+        name = "-Random forests. Missing value predicted"
+        self.PCA(features_encoded)
+        self.percentage_of_variance(features_encoded, name)
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, labels_encoded)
 
@@ -35,9 +40,9 @@ class  ClassifyMushroom:
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
-        # print("Accuracy:",metrics.accuracy_score(y_test, pred)) 
-
-        self.metrics(pred, y_test)
+        print("Random forests|Missing value predicted|CV")
+        self.cross_validation(classifier, features_encoded, labels_encoded)
+        self.metrics(pred, y_test, name)
         return
 
     def random_forest_classifier2(self):
@@ -46,8 +51,8 @@ class  ClassifyMushroom:
         self.fill_missing_data_with_mode()
 
         #reduce dimentionality
-        self.features = self.PCA()
-        self.percentage_of_variance()
+        # self.features = self.PCA()
+        # self.percentage_of_variance()
 
         labels_encoded = self.labels.copy()
         encode_l = preprocessing.LabelEncoder()
@@ -59,7 +64,7 @@ class  ClassifyMushroom:
             features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
 
         hot_encoder = preprocessing.OneHotEncoder()
-        hot_encoder.fit_transform(features_encoded)
+        features_encoded =  hot_encoder.fit_transform(features_encoded)
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, labels_encoded)
 
@@ -67,8 +72,8 @@ class  ClassifyMushroom:
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
-        # print("Accuracy:",metrics.accuracy_score(y_test, pred)) 
-
+        print("Random forests|Missing value filled with mode|CV")
+        self.cross_validation(classifier, features_encoded, labels_encoded)
         self.metrics(pred, y_test)
         return
 
@@ -86,7 +91,12 @@ class  ClassifyMushroom:
             features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
 
         hot_encoder = preprocessing.OneHotEncoder()
-        hot_encoder.fit_transform(features_encoded)
+        features_encoded = hot_encoder.fit_transform(features_encoded)
+
+        # reduce dimentionality
+        name = "-Logistic Regression. Missing value predicted"
+        # self.PCA(features_encoded)
+        # self.percentage_of_variance(features_encoded, name)
 
         features_encoded = features_encoded.astype(np.float)
         labels_encoded = labels_encoded.astype(np.float)
@@ -97,8 +107,10 @@ class  ClassifyMushroom:
         reg.fit(x_train, y_train)
         pred = reg.predict(x_test)
 
+        print("Logistic Regression|Missing value predicted|CV")
+        self.cross_validation(reg, features_encoded, labels_encoded)
         print("Logistics Regression 1 metrics: ")
-        self.metrics(pred, y_test)
+        self.metrics(pred, y_test, name)
         return
 
     def logistic_regression2(self):
@@ -125,7 +137,10 @@ class  ClassifyMushroom:
         reg = LogisticRegression()
         reg.fit(x_train, y_train)
         pred = reg.predict(x_test)
- 
+         
+        print("Logistic Regression|Missing value filled with mode|CV")
+        self.cross_validation(reg, features_encoded, labels_encoded)
+
         print("Logistics Regression 2 metrics: ")
         self.metrics(pred, y_test)
         return
@@ -160,6 +175,7 @@ class  ClassifyMushroom:
         reg.fit(x_train, y_train)
         pred = reg.predict(x_test)
 
+        self.cross_validation(reg, features_encoded, labels_encoded)
         print("Logistics Regression 1 metrics: ")
         self.metrics(pred, y_test)
         return
@@ -181,8 +197,9 @@ class  ClassifyMushroom:
         features_encoded = hot_encoder.fit_transform(features_encoded)
 
         # reduce dimentionality
+        name = "- Logistic Regression. Missing value filled with mode"
         self.PCA(features_encoded)
-        self.percentage_of_variance(features_encoded, "- Logistic Regression. Missing value filled with mode")
+        self.percentage_of_variance(features_encoded, name)
 
         features_encoded = features_encoded.astype(np.float)
         labels_encoded = labels_encoded.astype(np.float)
@@ -193,9 +210,13 @@ class  ClassifyMushroom:
         reg.fit(x_train, y_train)
         pred = reg.predict(x_test)
  
+        self.cross_validation(reg, features_encoded, labels_encoded)
         print("Logistics Regression 2 metrics: ")
-        self.metrics(pred, y_test)
+        self.metrics(pred, y_test, name)
         return
+
+    # def decision_trees(self):
+    #     return
 
     def predict_missing_data(self):
         '''In the mushroom dataset, there are missing values. Here, it is handled by predicting with
@@ -244,12 +265,12 @@ class  ClassifyMushroom:
         #Fill features with predicted missing values
         for col in range(self.features.shape[0]):
             if self.features[col, 10] == "?":
-                print("Before: ",self.features[col,:])
+                # print("Before: ",self.features[col,:])
                 update_features[col, 10] = missing_values[count]
                 count += 1
-                print("After: ",update_features[col,:])
+                # print("After: ",update_features[col,:])
 
-        print("Count end: ", count)
+        # print("Count end: ", count)
         if count == len(missing_values):
             self.features = update_features
             print("Missing values handled.")
@@ -289,7 +310,7 @@ class  ClassifyMushroom:
            print("Missing data not handled")
            return False
 
-    def metrics(self, predictions, true_labels):
+    def metrics(self, predictions, true_labels, name=""):
         accuracy = metrics.accuracy_score(true_labels, predictions)
         confusion_matrix = metrics.confusion_matrix(true_labels, predictions)
         recall = metrics.recall_score(true_labels, predictions)
@@ -297,7 +318,7 @@ class  ClassifyMushroom:
         print("Accuracy: ",accuracy)
         print("Confusion matrix: ", confusion_matrix)
         print("Recall: ",recall)
-        self.roc_curve_acc(true_labels, predictions)
+        self.roc_curve_acc(true_labels, predictions, name)
         return
 
     def PCA(self, data):
@@ -318,15 +339,20 @@ class  ClassifyMushroom:
         plt.xlabel("Principal Component")
         plt.ylabel("% Variance Explained")
         plt.xticks(rotation='vertical')
+        plt.tight_layout()
+        plt.title("Percentage of Variance")   
         plt.savefig("Percentage of variance " + name + ".jpeg")
-        plt.title("Percentage of Variance")
         plt.show()
         return
 
-    def cross_validation(self):
+    def cross_validation(self,algorithm, features, labels):
+        accuracy = cross_val_score(algorithm, features, labels, scoring='accuracy', cv = 10)
+        accuracy_percent = accuracy.mean() * 100
+        print("Cross validation accuracy: " , accuracy_percent)
+
         return
 
-    def roc_curve_acc(self, Y_test, Y_pred):
+    def roc_curve_acc(self, Y_test, Y_pred, name):
         false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(Y_test, Y_pred)
         roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
         plt.title('ROC Curve')
@@ -337,5 +363,8 @@ class  ClassifyMushroom:
         plt.xlim([-0.1, 1.1])
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
+        plt.tight_layout()
+        plt.title("ROC Curve")   
+        plt.savefig("ROC Curve " + name + ".jpeg")
         plt.show()
         return
