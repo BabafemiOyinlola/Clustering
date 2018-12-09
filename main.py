@@ -2,6 +2,7 @@ from pre_processing import *
 from K_means import *
 from classify_mushroom import *
 from clustering import *
+from classification import *
 
 test = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/Joensuu.txt")
 dataset = test.read_data()
@@ -10,17 +11,42 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-# kmeans = KMeans(4) # 4 works best for now till iterate is fixed
+# kmeans = KMeans(3) # 4 works best for now till iterate is fixed
 # clusters = kmeans.assign_cluster(standardised_data)
 # clustered_points = kmeans.iterate(standardised_data, 0.0001)
 # kmeans.plot(clustered_points, "Clustered data")
-
+# print("end")
 # HC = HierachicalClustering(dataset)
 # HC.calc()
 
-mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.txt")
+mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
 mushroom_data = mushroom_init.read_mushroom_data()
 mushroom = ClassifyMushroom(mushroom_data)
-mushroom_random_forest = mushroom.new_random_forest()
+# mushroom.fill_missing_data_with_mode()
+# mushroom_random_forest = mushroom.random_forest_classifier2()
 # mushroom_random_forest = mushroom.random_forest_classifier()
-# mushroom_logistic_reg = mushroom.logistic_regression()
+# mushroom_logistic_reg = mushroom.logistic_regression1()
+mushroom_logistic_reg = mushroom.logistic_regression2()
+
+
+
+# mush = Classification()
+# data = mush.read_data("mushroom.csv")
+# mush.split_data()
+# mush.random_forest_classifier()
+
+
+
+
+import matplotlib.pyplot as plt  
+import numpy as np  
+from sklearn.cluster import KMeans
+
+# plt.scatter(standardised_data[:,0],standardised_data[:,1], label='True Position', s= 5) 
+# plt.show()
+
+# kmeans = KMeans(n_clusters=3)  
+# kmeans.fit(standardised_data) 
+# plt.scatter(standardised_data[:,0], standardised_data[:,1], c=kmeans.labels_, cmap='rainbow')  
+# plt.scatter(kmeans.cluster_centers_[:,0] ,kmeans.cluster_centers_[:,1], color='black')
+# plt.show()

@@ -29,16 +29,16 @@ class HierachicalClustering:
         distance = self.distance()
         condenced_distance = sd.squareform(distance)
         linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
-        sc.hierarchy.dendrogram(linkage)  
+        # sc.hierarchy.dendrogram(linkage)  
         # plt.savefig("Location dendrogram without pruning")      
         #prune the tree here
         print("Prunning tree")
-        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.15)
-        plt.savefig("Location dendrogram prunned at p=0.25")  
-        sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 2)
-        plt.savefig("Location dendrogram prunned at level p=4") 
-        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
-        plt.savefig("Location dendrogram prunned at p=0.15")
+        # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.2)
+        # plt.savefig("Location dendrogram prunned at p=0.25")  
+        sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 3)
+        plt.savefig("Location dendrogram prunned at level p=3") 
+        # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
+        # plt.savefig("Location dendrogram prunned at p=0.15")
         plt.show()
         return
 
