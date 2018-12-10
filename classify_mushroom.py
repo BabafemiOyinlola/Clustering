@@ -215,9 +215,6 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test, name)
         return
 
-    # def decision_trees(self):
-    #     return
-
     def predict_missing_data(self):
         '''In the mushroom dataset, there are missing values. Here, it is handled by predicting with
         random forests'''
@@ -368,3 +365,9 @@ class  ClassifyMushroom:
         plt.savefig("ROC Curve " + name + ".jpeg")
         plt.show()
         return
+
+
+    #Using KNN
+    
+    # def decision_trees(self):
+    #     return

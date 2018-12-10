@@ -1,8 +1,9 @@
+import math
+import timeit
+import matplotlib.pyplot as plt
+import numpy as np
 import scipy.cluster as sc
 import scipy.spatial.distance as sd
-import matplotlib.pyplot as plt
-import math
-import numpy as np
 
 
 class HierachicalClustering:
@@ -40,6 +41,7 @@ class HierachicalClustering:
         # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
         # plt.savefig("Location dendrogram prunned at p=0.15")
         plt.show()
+        # %timeit calc()
         return
 
 
@@ -99,4 +101,3 @@ class HierachicalClustering:
 #         # plt.plot(centroids[1,0],centroids[1,1],'gx')
 #         # plt.title(title)
 #         # plt.show()
-
