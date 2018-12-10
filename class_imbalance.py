@@ -1,7 +1,10 @@
 import pandas as pd
 import numpy as np
 import random
+import matplotlib.pyplot as plt
 from sklearn import metrics
+from sklearn.decomposition import PCA
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -125,7 +128,7 @@ class ClassImbalance:
         labels  = data[:, 8]
         features =  np.delete(data, obj=8, axis=1)
 
-        #one hot encode sex
+        #one hot encode sex since
         new_col = pd.get_dummies(features[:, 0])
         #create new columns for sex class
         new_col = np.array(new_col)
@@ -141,7 +144,8 @@ class ClassImbalance:
         pred = reg.predict(x_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
-        print("Accuracy over sampled data: ", accuracy)
+        print("Logisitic Regression - Accuracy over sampled data without PCA: ", accuracy)
+        print()
         return
 
     def logistic_regression_undersampled(self):
@@ -166,9 +170,215 @@ class ClassImbalance:
         pred = reg.predict(x_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
-        print("Accuracy under sampled data: ", accuracy)
+        print("Logisitic Regression - Accuracy under sampled data without PCA: ", accuracy)
+        print()
         return
 
+    def logistic_regression_oversampled_PCA(self):
+        data = self.pre_process_oversample(4110, "positive")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex since
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        variance = self.percentage_of_variance(features, "Abalone")  
+        # print("Feature variances: ", variance)
+        #this shows that only the length, diameter and height contribute a greater percentage
+        #drop other features
+
+        features = self.PCA(features, 5)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        reg = LogisticRegression()
+        reg.fit(x_train, y_train)
+        pred = reg.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Logisitic Regression - Accuracy over sampled data after PCA: ", accuracy)
+        print()
+        return
+
+    def logistic_regression_undersampled_PCA(self):
+        data = self.pre_process_undersample(4110, "negative")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        variance = self.percentage_of_variance(features, "Abalone")  
+        # print("Feature variances: ", variance)
+        #this shows that only the length, diameter and height contribute a greater percentage
+        #drop other features
+
+        features = self.PCA(features, 5)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        reg = LogisticRegression()
+        reg.fit(x_train, y_train)
+        pred = reg.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Logisitic Regression - Accuracy under sampled data after PCA: ", accuracy)
+        print()
+        return
+
+    def decision_tree_oversampled(self):
+        data = self.pre_process_oversample(4110, "positive")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex since
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        tree = DecisionTreeClassifier()
+        tree.fit(x_train, y_train)
+        pred = tree.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy over sampled data without PCA: ", accuracy)
+        print()
+        return
+
+    def decision_tree_undersampled(self):
+        data = self.pre_process_undersample(4110, "negative")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        tree = DecisionTreeClassifier()
+        tree.fit(x_train, y_train)
+        pred = tree.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy under sampled data without PCA: ", accuracy)
+        print()
+        return
+
+    def decision_tree_oversampled_PCA(self):
+        data = self.pre_process_oversample(4110, "positive")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex since
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        variance = self.percentage_of_variance(features, "Abalone")  
+        # print("Feature variances: ", variance)
+        #this shows that only the length, diameter and height contribute a greater percentage
+        #drop other features
+
+        features = self.PCA(features, 5)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        tree = DecisionTreeClassifier()
+        tree.fit(x_train, y_train)
+        pred = tree.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy over sampled data after PCA: ", accuracy)
+        print()
+        return
+
+    def decision_tree_undersampled_PCA(self):
+        data = self.pre_process_undersample(4110, "negative")
+
+        labels  = data[:, 8]
+        features =  np.delete(data, obj=8, axis=1)
+
+        #one hot encode sex
+        new_col = pd.get_dummies(features[:, 0])
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        #add the new columns to features
+        features = np.column_stack([features, new_col])
+        #delete sex column 
+        features =  np.delete(features, obj=0, axis=1)
+
+        variance = self.percentage_of_variance(features, "Abalone")  
+        # print("Feature variances: ", variance)
+        #this shows that only the length, diameter and height contribute a greater percentage
+        #drop other features
+
+        features = self.PCA(features, 5)
+
+        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+        tree = DecisionTreeClassifier()
+        tree.fit(x_train, y_train)
+        pred = tree.predict(x_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy under sampled data after PCA: ", accuracy)
+        print()
+        return
+
+    def PCA(self, data, n):
+        pca = PCA(n_components=n)  #10 features (excluding sex and including encoded sex classes)
+        pca.fit(data)
+        cof = pca.components_
+        trasform_data = pca.transform(data)
+        return trasform_data
+
+    def percentage_of_variance(self, data, name):
+        pca = PCA(n_components=10)
+        pca.fit(data)
+        colums = ["Length","Diameter", "Height", "Whole_weight", "Shucked_weight", "Viscera_weight", 
+                    "Shell_weight", "Sex-F", "Sex-I", "Sex-M"]
+        plt.bar(colums, pca.explained_variance_ratio_, tick_label= colums)
+        plt.xlabel("Principal Component")
+        plt.ylabel("% Variance Explained")
+        plt.xticks(rotation='vertical')
+        plt.tight_layout()
+        plt.title("Percentage of Variance")   
+        plt.savefig("Percentage of variance " + name + ".jpeg")
+        # plt.show()
+        return pca.explained_variance_ratio_
 
 
 abalone = ClassImbalance()
@@ -176,5 +386,11 @@ abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining
 # undersampled = abalone.pre_process_undersample(4110, "negative") 
 # oversampled = abalone.pre_process_oversample(4110, "positive")
 
-# abalone.logistic_regression_oversampled()
+abalone.logistic_regression_oversampled()
+abalone.logistic_regression_oversampled_PCA()
 abalone.logistic_regression_undersampled()
+abalone.logistic_regression_undersampled_PCA()
+abalone.decision_tree_oversampled()
+abalone.decision_tree_oversampled_PCA()
+abalone.decision_tree_undersampled()
+abalone.decision_tree_undersampled_PCA()
