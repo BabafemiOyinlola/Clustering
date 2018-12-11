@@ -20,6 +20,9 @@ class HierachicalClustering:
 =======
     def __init__(self, data):
         self.data = data
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     
     def distance(self, data):
@@ -71,6 +74,9 @@ class HierachicalClustering:
         plt.savefig("Location dendrogram prunned at level p=3") 
         # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
         # plt.savefig("Location dendrogram prunned at p=0.15")
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
         end_time = time.process_time() - start_time 
@@ -132,12 +138,15 @@ class KMeans:
         return
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 #         # plt.plot(centroids[0,0],centroids[0,1],'rx')
 #         # plt.plot(centroids[1,0],centroids[1,1],'gx')
 #         # plt.title(title)
 #         # plt.show()
 
 =======
+=======
+>>>>>>> Stashed changes
     def new_centroid(self):
         new_centroids = np.empty((self.k, 2))  
         points = self.grouped_points
@@ -241,4 +250,7 @@ class KMeans:
                 return
         except Exception as error:
             print(error)
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
