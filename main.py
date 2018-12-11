@@ -33,18 +33,3 @@ mushroom_logistic_reg = mushroom.logistic_regression1()
 # mush.split_data()
 # mush.random_forest_classifier()
 
-
-
-
-import matplotlib.pyplot as plt  
-import numpy as np  
-from sklearn.cluster import KMeans
-
-# plt.scatter(standardised_data[:,0],standardised_data[:,1], label='True Position', s= 5) 
-# plt.show()
-
-# kmeans = KMeans(n_clusters=3)  
-# kmeans.fit(standardised_data) 
-# plt.scatter(standardised_data[:,0], standardised_data[:,1], c=kmeans.labels_, cmap='rainbow')  
-# plt.scatter(kmeans.cluster_centers_[:,0] ,kmeans.cluster_centers_[:,1], color='black')
-# plt.show()
