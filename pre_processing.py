@@ -7,7 +7,6 @@ class Preprocessing:
     def __init__(self, filepath):
         self.filepath = filepath
 
-    #1) Read Data: This is to read the Joensuu text file specifically
     def read_data_Joensuu(self):
         read = open(self.filepath, "r")
         content = read.readlines()
@@ -70,8 +69,13 @@ class Preprocessing:
 
         return data_copy
 
+<<<<<<< HEAD
     def PCA(self, data, n=2):
         pca = PCA(n_components=n)
+=======
+    def PCA(self, data):
+        pca = PCA(n_components=2) #we have two components
+>>>>>>> 34f58092bf9fdc84e5a0d704b1d11964b7f5842d
         pca.fit(data)
         cof = pca.components_
         trasform_data = pca.transform(data)
@@ -98,4 +102,24 @@ class Preprocessing:
         fig.tight_layout()   
         plt.savefig(title + ".jpeg" ,bbox_inches= "tight")
         plt.show()
+<<<<<<< HEAD
         return
+=======
+        
+    def read_mushroom_data(self):
+        read = open(self.filepath, "r")
+        content = read.readlines()
+        if(len(content) == 0):
+            return
+        else:
+            len_content = len(content[0].rstrip().split(",")) #Split the first line in content to obtain number of columns/ features
+            data_array = np.empty((len(content), len_content), dtype=str) #Create an empty array to store dataitems
+            for line in range(len(content)):
+                data_array[line] = content[line].split(",")
+
+            read.close()
+            labels = data_array[:, 0]
+            features =  np.delete(data_array, obj=0, axis=1)
+            data_array = []
+            return (features, labels)
+>>>>>>> 34f58092bf9fdc84e5a0d704b1d11964b7f5842d
