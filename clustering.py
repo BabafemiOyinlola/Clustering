@@ -1,9 +1,7 @@
-<<<<<<< Updated upstream
-=======
 import math
 import time
 import numpy as np
->>>>>>> Stashed changes
+
 import scipy.cluster as sc
 import matplotlib.pyplot as plt
 import scipy.spatial.distance as sd
