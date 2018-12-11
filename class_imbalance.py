@@ -1,6 +1,7 @@
+import math
+import random
 import pandas as pd
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.decomposition import PCA
@@ -10,8 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 
 class ClassImbalance:
-    def __init__(self):
-
+    # def __init__(self):
     def read_data(self, filepath):
         colums = ["Sex","Length","Diameter", "Height", "Whole_weight", "Shucked_weight", "Viscera_weight", 
                     "Shell_weight", "Class"]
@@ -120,7 +120,7 @@ class ClassImbalance:
 
         return data
 
-    #binary classification
+    #binary labels so try logistic regression
     def logistic_regression_oversampled(self):
         data = self.pre_process_oversample(4110, "positive")
 
