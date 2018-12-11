@@ -10,10 +10,6 @@ import numpy as np
 
 
 class HierachicalClustering:
-    def __init__(self):
-        
-        return
-
     def __init__(self, data):
         self.data = data
 
