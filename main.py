@@ -11,13 +11,6 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-# kmeans = KMeans(3) # 4 works best for now till iterate is fixed
-# clusters = kmeans.assign_cluster(standardised_data)
-# clustered_points = kmeans.iterate(standardised_data, 0.0001)
-# kmeans.plot(clustered_points, "Clustered data")
-# print("end")
-# HC = HierachicalClustering(dataset)
-# HC.calc()
 
 mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
 mushroom_data = mushroom_init.read_mushroom_data()

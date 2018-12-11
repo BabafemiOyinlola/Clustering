@@ -27,10 +27,9 @@ class ClassImbalance:
 
     #set k = 4174 - 32 = 4142 (positives = 2)
     def pre_process_undersample(self, k, label):
-
         undersampled_data = np.array([])
         label_index = []
-
+        
         #select indexes of rows with specified label
         for row in range(self.data.shape[0]):
             if self.data[row, 8] == label:
