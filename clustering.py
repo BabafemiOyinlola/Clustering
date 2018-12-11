@@ -33,30 +33,26 @@ class HierachicalClustering:
 
         return distanceMatrix
 
-
-    def calc(self, data):
-        condenced_distance = sd.squareform(self.distance(data))
-        linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
-        plt.figure(figsize=(300,100))
-        sc.hierarchy.dendrogram(linkage)
-        plt.show()
-
-    def calc(self):
-        distance = self.distance()
+    def cluster(self, data):
+        distance = self.distance(data)
         
         #Calculate time:
         start_time = time.process_time() #start time
 
         condenced_distance = sd.squareform(distance)
         linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
+       
         # sc.hierarchy.dendrogram(linkage)  
-        # plt.savefig("Location dendrogram without pruning")      
-        #prune the tree here
-        print("Prunning tree")
-        # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.2)
-        # plt.savefig("Location dendrogram prunned at p=0.25")  
-        sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 3)
-        plt.savefig("Location dendrogram prunned at level p=3") 
+        # plt.savefig("Location dendrogram without pruning")     
+        
+        #prune tree
+        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =4)
+        plt.title("Location dendrogram showing 4 clusters") 
+        plt.savefig("Location dendrogram showing 4 clusters")  
+
+        # sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 3)
+        # plt.savefig("Location dendrogram prunned at level p=3") 
+
         # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
         # plt.savefig("Location dendrogram prunned at p=0.15")
 
@@ -65,11 +61,9 @@ class HierachicalClustering:
         print("Time for Hierarchical Clustering: ", end_time)
 
         plt.show()
-
         return
 
 class KMeans:
-
     def __init__ (self, k = 3):
         try:
             if k > 5 :
@@ -206,16 +200,17 @@ class KMeans:
                 for i in range(len(points)):
                     temp = points[i]
                     for j in range(len(temp)):
-                        plt.plot(temp[j][0],temp[j][1],'.', color = col[i])
+                        plt.plot(temp[j][0],temp[j][1],'.', color = col[i], alpha=1)
             
                 centroid_colours = ['mx', 'gx', 'yx', 'rx', 'bx', 'kx', 'wx']
                 print("FINAL CENTROIDS")
                 print(self.centroids)
-                for i in range(self.k):
-                    centroid = self.centroids[i]
-                    plt.plot(centroid[0],centroid[1], centroid_colours[i])
+                # for i in range(self.k):
+                #     centroid = self.centroids[i]
+                #     plt.plot(centroid[0],centroid[1], centroid_colours[i])
                 # plt.scatter(self.centroids[:,0] ,self.centroids[:,1], color="green")
                 plt.title(title)
+                plt.savefig(title + ".jpeg", bbox_inches="tight")
                 plt.show()
 
                 return
