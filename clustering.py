@@ -65,19 +65,20 @@ class HierachicalClustering:
 
 class KMeans:
     def __init__ (self, k = 3):
-        try:
-            if k > 5 :
-                self.k = None
-                raise Exception("Maximum clusters is 5")
-            elif k < 1:
-                self.k = None
-                raise Exception("Minimum clusters is 2")
-            else:
-                self.k = k
-                self.groups = []
-                self.iter = 0
-        except Exception as error:
-            print(error)
+        # try:
+            # if k > 5 :
+            #     self.k = None
+            #     raise Exception("Maximum clusters is 5")
+            # elif k < 1:
+            #     self.k = None
+            #     raise Exception("Minimum clusters is 2")
+            # else:
+        self.k = k
+        self.grouped_points = []
+        self.centroids = []
+        self.iter = 0
+        # except Exception as error:
+        #     print(error)
 
     def initial_centroids(self, data):
         #choose initial centroids
@@ -195,14 +196,14 @@ class KMeans:
                 return
             else:
                 plt.figure(figsize=(6,4))
-                col = ["blue", "red", "black", "brown", "green", "cyan"]
+                col = ["blue", "red", "black", "brown", "green", "cyan", "yellow", "m", "grey", "pink"]
                 points = self.grouped_points
                 for i in range(len(points)):
                     temp = points[i]
                     for j in range(len(temp)):
                         plt.plot(temp[j][0],temp[j][1],'.', color = col[i], alpha=1)
             
-                centroid_colours = ['mx', 'gx', 'yx', 'rx', 'bx', 'kx', 'wx']
+                centroid_colours = ['mx', 'gx', 'yx', 'rx', 'bx', 'kx', 'wx', 'rx', 'bx', 'kx', 'wx']
                 print("FINAL CENTROIDS")
                 print(self.centroids)
                 # for i in range(self.k):
@@ -216,3 +217,28 @@ class KMeans:
                 return
         except Exception as error:
             print(error)
+
+class ElbowMethod:
+    # def __init__(self, points, centroids):
+    #     self.points = points
+    #     self.centroids = centroids
+
+    def sum_of_squared_errors(self, points, centroids):
+
+        distances = []
+        
+        for i in range(len(centroids)):
+            dist = 0
+            temp = points[i]
+            for j in range(len(temp)):
+                dist = pow((temp[j][0] - centroids[i][0]), 2) + pow((temp[j][1] - centroids[i][1]), 2)
+                # dist_y = pow((temp[j][1] - centroids[i][1]), 2)
+            # dist = dist_x + dist_y + dist
+                distances.append(dist)
+        
+        sse = 0
+        for i in range(len(distances)):
+            sse = sse + distances[i]
+
+        return(sse)
+
