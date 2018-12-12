@@ -397,27 +397,6 @@ class ClassImbalance:
         print("Cross validation accuracy: " , accuracy_percent)
         return accuracy
 
-    # def roc_curve_acc(self, true_labels, predictions, name, col1, col2):
-    #     encoder = LabelEncoder()
-    #     true_labels_new = encoder.fit_transform(true_labels)
-    #     predictions_new = encoder.fit_transform(predictions)
-    #     false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
-    #     roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
-    #     plt.title('ROC Curve')
-    #     #GRAPH DATA
-    #     #plt.figure()
-    #     plt.xlabel('False Positive Rate')
-    #     plt.ylabel('True Positive Rate')
-    #     plt.plot([0, 1], [0, 1], color=col1, linestyle='--')
-    #     plt.xlim([0.0, 1.0])
-    #     plt.ylim([0.0, 1.05])
-    #     plt.title("ROC Curve")
-    #     plt.plot(false_positive_rate, true_positive_rate, color=col2, lw=2, label= name + "area = %0.2f)" % roc_auc)
-    #     plt.legend(loc="lower right")
-    #     plt.savefig("ROC Curve " + name + ".jpeg")
-    #     plt.show()
-    #     return
-
     def plot_metrics(self):
         lg_over = abalone.logistic_regression_oversampled()
         lg_over_PCA = abalone.logistic_regression_oversampled_PCA()
@@ -470,7 +449,7 @@ class ClassImbalance:
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
             roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
-            #GRAPH DATA
+        
             #plt.figure()
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
