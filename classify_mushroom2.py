@@ -5,12 +5,12 @@ from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 
-class  ClassifyMushroom:
+class  ClassifyMushroom2:
     def __init__ (self, data):
         self.features = data[0]
         self.labels = data[1]
 
-    def new_random_forest(self):
+    def main_random_forest(self):
         x_train, x_test, y_train, y_test = train_test_split(self.features, self.labels, test_size=0.3)
 
         #train missign data model with training data
@@ -69,7 +69,7 @@ class  ClassifyMushroom:
         feature_train = get_params[0]
         feature_test = get_params[1]
         content = get_params[2]
-
+        print("#####################HANDLED MISSING DATA IN TRAIN####################")
         #predict missing values using random forests
         classifier = RandomForestClassifier(n_estimators=500)
         classifier.fit(feature_train, content)
@@ -79,7 +79,8 @@ class  ClassifyMushroom:
         feature_train2 = get_params2[0]
         feature_test2 = get_params2[1]
         content2 = get_params2[2]
-
+        print("Handling missing data in test set")
+        #programme breaks here
         missing_values2 = classifier.predict(feature_test2)
 
         #Fill features with predicted missing values
@@ -144,10 +145,12 @@ class  ClassifyMushroom:
         
         return(train_data)
 
+
+    ############FORMER##############
+
     def random_forest_classifier(self):
         '''Using random forests'''
-        #self.handle_missing_data()
-
+        self.handle_missing_data()
         labels_encoded = self.labels.copy()
         encode_l = preprocessing.LabelEncoder()
         labels_encoded = encode_l.fit_transform(self.labels)
