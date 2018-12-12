@@ -8,6 +8,10 @@ class KMeans:
         self.groups = []
         self.iter = 0
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> class-imbalance
     def initial_centroids(self, data):
         #choose initial centroids
         centroids = data[np.random.choice(data.shape[0], self.k, False)]
@@ -115,10 +119,17 @@ class KMeans:
         centroid_colours = ['mx', 'gx', 'yx', 'rx', 'bx', 'kx', 'wx']
         print("FINAL CENTROIDS")
         print(self.centroids)
+<<<<<<< HEAD
         for i in range(self.k):
             centroid = self.centroids[i]
             plt.plot(centroid[0],centroid[1], centroid_colours[i])
         # plt.scatter(self.centroids[:,0] ,self.centroids[:,1], color="green")
+=======
+        # for i in range(self.k):
+        #     centroid = self.centroids[i]
+        #     plt.plot(centroid[0],centroid[1], centroid_colours[i])
+        plt.scatter(self.centroids[:,0] ,self.centroids[:,1], color="green")
+>>>>>>> class-imbalance
         plt.title(title)
         plt.show()
 

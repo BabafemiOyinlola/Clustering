@@ -6,10 +6,12 @@ class KMeans:
     def __init__ (self, k = 3):
         self.k = k
         self.centroids = []
-        self.cluster = {}
+        # self.cluster = {}
         self.points = []
         self.point_labels = []
         self.grouped_points = []
+        self.cluster = []
+        self.iter = 0
            
     def initial_centroids(self, data):
         #choose initial centroids
@@ -26,7 +28,10 @@ class KMeans:
 
     def assign_cluster(self, data):
         #assign the point with the euclidean distance closest to the centroid to that cluster
-        self.centroids = self.initial_centroids(data)
+        if self.iter == 0:
+            self.centroids = self.initial_centroids(data)
+        else:
+            data = self.points
 
         for i in range(data.shape[0]):
             dist_min = np.inf
@@ -38,10 +43,10 @@ class KMeans:
                 if(dist < dist_min):
                     dist_min = dist
                     label_index = j
+            
+            self.cluster.append(str(data[i, :]) + ":" + str(label_index))
 
-            #data is lost here
-            # self.cluster.update({str(data[i, :]): label_index})
-            self.cluster[str(data[i, :])] = label_index
+
         return self.cluster
   
     #make this generic
@@ -73,40 +78,36 @@ class KMeans:
         plt.show()
 
     def label_points(self, data):
+        if self.iter == 0:
+            self.centroids = self.initial_centroids(data)
+        else:
+            data = self.points
+
         points = np.empty((data.shape[0], 2))
         cluster_labels = np.empty((data.shape[0], 1))
-        count = 0
 
         point_in_clusters = [[] for _ in range(self.k)]  
+
+        for i in range(data.shape[0]):
+            item = self.cluster[i].split(":")
+            
+            temp = item[0].replace("]", "")
+            temp = temp.replace("[", "")
+            temp = temp.rstrip()
+
+            points[i] = np.fromstring(temp, dtype=float, sep=' ')
+            # print(points[i])
+            cluster_labels[i] = item[1]
         
-        for key, value in self.cluster.items():
-            key = key.replace("]", "")
-            key = key.replace("[", "")
-            key = key.rstrip()
+            for j in range(self.k):
+                if(item[1] == str(j)):
+                    point_in_clusters[j].append(points[i])
 
-            lon_lat = key.split(" ")
-            i = len(lon_lat) - 1
-            while(i >= 0):
-                if(lon_lat[i] == "" or lon_lat[i] == " "):
-                    lon_lat.pop(i)   
-                i = i - 1         
-
-            points[count, 0] = float(lon_lat[0])
-            points[count, 1] = float(lon_lat[1])
-
-            cluster_labels[count] = value
-
-            for i in range(self.k):
-                if(value == i):
-                    point_in_clusters[i].append(points[count])
-                    break
-
-            count = count + 1
-
+        # total = len(point_in_clusters[0]) + len(point_in_clusters[1]) + len(point_in_clusters[2]) + len(point_in_clusters[3])
         self.grouped_points = point_in_clusters
         self.points = points
         self.point_labels = cluster_labels
-        
+
         return(points, cluster_labels)
 
     def choose_new_centroid(self):
@@ -126,35 +127,43 @@ class KMeans:
             new_centroids[i][0] = total_x/len(temp)
             new_centroids[i][1] = total_y/len(temp)
 
-        diff_btw_centroids = np.empty((self.k, 2))
+        dist_btw_centroids = [0]*self.k
+
         for i in range(self.k):
-            diff_btw_centroids[i] = new_centroids[i] - self.centroids[i]
-        
+            dist_btw_centroids[i] = self.euclidean_distance(new_centroids[i], self.centroids[i])
+
+        total_diff = sum(dist_btw_centroids)
+        print("Old Centroid: ")
+        print(self.centroids)
+        print("New centroid: ")
+        print(new_centroids)
 
         self.centroids = new_centroids
 
-        return (diff_btw_centroids)
+        return (total_diff)
 
     def iterate(self, data, threshold=0.001):
         self.assign_cluster(data)
         self.label_points(data)
-        temp1 = self.choose_new_centroid()
-        diff = self.choose_new_centroid()
 
-        grt_threshold = [True]*(self.k)
-        all_thres = True
-        while all_thres:
-            for i in range(len(diff)):
-                if(np.max(diff[i]) <= threshold):
-                    grt_threshold[i] = False
+        diff_inital = sum(self.centroids)
+        print("Difference initial: ", diff_inital)
 
-            if True not in grt_threshold:
-                all_thres = False
+        diff = diff_inital
 
-            temp = self.choose_new_centroid()
 
-            diff = self.choose_new_centroid()
+        count = 10
+        # while diff > threshold:
+        while count > 0:
+            self.iter = self.iter + 1
+            self.choose_new_centroid() 
+            self.assign_cluster(data) 
+            self.label_points(data)      
+            # print("Difference before: ", diff)
+            # diff_new = sum(self.centroids)
+            # print("Difference after: ", diff_new)
+            # diff = diff_new - diff
+            # print("Difference: ", diff)
+            # count = count - 1
+
         return(self.points)
-
-
-#Check out the cluster .update dictionary and append instead

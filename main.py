@@ -1,8 +1,9 @@
 from clustering import *
-from classify_mushroom2 import *
+# from classify_mushroom2 import *
 from pre_processing import *
 from classify_mushroom import *
 from class_imbalance import *
+from classification import *
 
 test = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/Joensuu.txt")
 dataset = test.read_data_Joensuu()
@@ -81,3 +82,25 @@ abalone.decision_tree_undersampled()
 abalone.decision_tree_undersampled_PCA()
 #************************************************************************************************************#
 #************************************************************************************************************#
+
+mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
+mushroom_data = mushroom_init.read_mushroom_data()
+mushroom = ClassifyMushroom(mushroom_data)
+
+mushroom_logistic_reg = mushroom.random_forest_classifier1()
+mushroom_logistic_reg = mushroom.random_forest_classifier2()
+
+mushroom_logistic_reg = mushroom.logistic_regression2()
+mushroom_logistic_reg = mushroom.logistic_regression1()
+
+# mushroom_logistic_reg = mushroom.logistic_regression2()
+# mushroom_logistic_reg = mushroom.logistic_regression2_PCA()
+
+
+
+
+# mush = Classification()
+# data = mush.read_data("mushroom.csv")
+# mush.split_data()
+# mush.random_forest_classifier()
+

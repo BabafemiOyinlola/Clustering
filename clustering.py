@@ -5,8 +5,6 @@ import scipy.cluster as sc
 import matplotlib.pyplot as plt
 import scipy.spatial.distance as sd
 import matplotlib.pyplot as plt
-import math
-import numpy as np
 
 
 class HierachicalClustering:
@@ -22,13 +20,9 @@ class HierachicalClustering:
 
         for i in range(rows):
             for j in range(rows):
-
                 sumTotal = 0
-
                 for c in range(cols):
-
-                    sumTotal = sumTotal + pow((data[i,c] - data[j,c]),2)
-
+                    sumTotal = sumTotal + pow((self.data[i,c] - self.data[j,c]),2)
                 distanceMatrix[i,j] = math.sqrt(sumTotal)
 
         return distanceMatrix
