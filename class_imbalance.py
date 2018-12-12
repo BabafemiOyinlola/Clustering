@@ -1,7 +1,9 @@
+import math
 import random
 import numpy as np
 import pandas as pd
 import scikitplot as skplt
+from pre_processing import Preprocessing
 from sklearn import metrics
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
@@ -25,41 +27,41 @@ class ClassImbalance:
         self.data = np.array(data)
         for i in range(self.data.shape[0]):
             self.data[i, 8] = self.data[i, 8].strip()
-    
-        return
+        
+        return self.data
 
     #set k = 4174 - 32 = 4142 (positives = 2)
-    def pre_process_undersample(self, k, label):
+    def pre_process_undersample(self, k, label, data):
         undersampled_data = np.array([])
         label_index = []
         
         #select indexes of rows with specified label
-        for row in range(self.data.shape[0]):
-            if self.data[row, 8] == label:
+        for row in range(data.shape[0]):
+            if data[row, 8] == label:
                 label_index.append(row)
 
         random_remove = random.sample(label_index, k)
 
-        for i in range(self.data.shape[0]):
+        for i in range(data.shape[0]):
             if i not in random_remove:
                 if len(undersampled_data) == 0:
                     undersampled_data = self.data[i, :].copy()
                 else:
-                    undersampled_data = np.vstack((undersampled_data, self.data[i, :]))
+                    undersampled_data = np.vstack((undersampled_data, data[i, :]))
 
         return undersampled_data
 
-    def pre_process_oversample(self, k, label):
-        oversampled_data = self.data.copy()
+    def pre_process_oversample(self, k, label, data):
+        oversampled_data = data.copy()
         label_index = []
 
-        for row in range(self.data.shape[0]):
-            if self.data[row, 8] == label:
+        for row in range(data.shape[0]):
+            if data[row, 8] == label:
                 label_index.append(row)
 
         for i in range(k):
             index = label_index[random.randint(0, (len(label_index)-1))]
-            item = self.data[index]
+            item = data[index]
 
             oversampled_data = np.vstack((oversampled_data, item))
         return oversampled_data
@@ -124,13 +126,38 @@ class ClassImbalance:
 
     #binary classification
     def logistic_regression_oversampled(self):
-        data = self.pre_process_oversample(4110, "positive")
 
-        x_train, x_test, y_train, y_test = self.process_and_split_data(data)
+        train, test = self.process_and_split_data()
+
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
 
         reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Logisitic Regression - Accuracy over sampled data without PCA: ", accuracy)
@@ -139,7 +166,7 @@ class ClassImbalance:
         # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
         print()
         
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
@@ -330,32 +357,48 @@ class ClassImbalance:
         # plt.show()
         return pca.explained_variance_ratio_
 
-    def process_and_split_data(self, data):
-        labels  = data[:, 8]
-        features =  np.delete(data, obj=8, axis=1)
+    def process_and_split_data(self):
+        data = self.data
+        positive_class = []
+        negative_class = []
 
-        #one hot encode sex
-        new_col = pd.get_dummies(features[:, 0])
-        #create new columns for sex class
-        new_col = np.array(new_col)
-        #add the new columns to features
-        features = np.column_stack([features, new_col])
-        #delete sex column 
-        features =  np.delete(features, obj=0, axis=1)
-        variance = self.percentage_of_variance(features,"Abalone", 5)  
-        # print("Feature variances: ", variance)
-        #this shows that only the length, diameter and height contribute a greater percentage
-        #drop other features
+        train, test = [], []
 
-        features = self.PCA(features, 5)
+        for row in range(data.shape[0]):
+            if data[row, 8] == "negative":
+                negative_class.append(data[row])
+            else:
+                positive_class.append(data[row])
 
-        variance = self.percentage_of_variance(features, "Abalone", 5) 
+        positive_class = np.array(positive_class)
+        negative_class = np.array(negative_class)
+        
+        #split in 30% test and 70% train
+        pos_num = int(0.3 * len(positive_class))
+        neg_num = int(0.3 * len(negative_class))
 
-        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+        for i in range(pos_num):
+            index = random.randint(0, (len(positive_class)-1))
+            item = positive_class[index]
+            test.append(item)         
+            positive_class = np.delete(positive_class, obj=index, axis=0)
+        
+        for i in range(neg_num):
+            index = random.randint(0, (len(negative_class)-1))
+            item = negative_class[index]
+            test.append(item)         
+            negative_class = np.delete(negative_class, obj=index, axis=0)
 
-        # self.x_train, self.x_test, self.y_train, self.y_test = x_train, x_test, y_train, y_test
+        test = np.array(test)
 
-        return (x_train, x_test, y_train, y_test)
+        for i in range(len(positive_class)):
+            train.append(positive_class[i])
+        for i in range(len(negative_class)):
+            train.append(negative_class[i])
+        
+        train = np.array(train)
+
+        return (train, test)
 
     def process_split_PCA(self, data):
         labels  = data[:, 8]
@@ -466,14 +509,14 @@ class ClassImbalance:
 
 
 abalone = ClassImbalance()
-abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/abalone19.csv")
+data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 # undersampled = abalone.pre_process_undersample(4110, "negative") 
 # oversampled = abalone.pre_process_oversample(4110, "positive")
 
 # abalone.plot_imbalance()
 
-
-# abalone.logistic_regression_oversampled()
+# abalone.process_and_split_data(data)
+abalone.logistic_regression_oversampled()
 # abalone.logistic_regression_oversampled_PCA()
 # abalone.logistic_regression_undersampled()
 # abalone.logistic_regression_undersampled_PCA()
