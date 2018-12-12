@@ -62,7 +62,6 @@ class ClassImbalance:
             item = self.data[index]
 
             oversampled_data = np.vstack((oversampled_data, item))
-        
         return oversampled_data
 
     def euclidean_distance(self, point1, point2):
@@ -137,6 +136,7 @@ class ClassImbalance:
         print("Logisitic Regression - Accuracy over sampled data without PCA: ", accuracy)
         print()
         self.metrics(pred, y_test)
+        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
         print()
         
         features = np.vstack((x_train, x_test))
@@ -144,7 +144,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(reg, features, labels)
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def logistic_regression_undersampled(self):
         data = self.pre_process_undersample(4110, "negative")
@@ -162,8 +162,10 @@ class ClassImbalance:
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
+
+        # self.roc_curve_acc(y_test, pred, "Logisitic Regression undersampled data without PCA:")
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def logistic_regression_oversampled_PCA(self):
         data = self.pre_process_oversample(4110, "positive")
@@ -182,8 +184,9 @@ class ClassImbalance:
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-       
-        return cross_val_acc
+        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data - PCA:")
+
+        return cross_val_acc, y_test, pred
 
     def logistic_regression_undersampled_PCA(self):
         data = self.pre_process_undersample(4110, "negative")
@@ -201,8 +204,8 @@ class ClassImbalance:
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-       
-        return cross_val_acc
+        # self.roc_curve_acc(y_test, pred, "Logisitic Regression undersampled data with PCA:")
+        return cross_val_acc, y_test, pred
 
     def decision_tree_oversampled(self):
         data = self.pre_process_oversample(4110, "positive")
@@ -221,7 +224,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def decision_tree_undersampled(self):
         data = self.pre_process_undersample(4110, "negative")
@@ -240,7 +243,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def decision_tree_oversampled_PCA(self):
         data = self.pre_process_oversample(4110, "positive")
@@ -259,7 +262,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def decision_tree_undersampled_PCA(self):
         data = self.pre_process_undersample(4110, "negative")
@@ -278,7 +281,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc
+        return cross_val_acc, y_test, pred
 
     def plot_imbalance(self):
         data = self.data
@@ -385,7 +388,7 @@ class ClassImbalance:
         print("Accuracy: ",accuracy)
         print("Confusion matrix: ", confusion_matrix)
         # print("Recall: ",recall)
-        self.roc_curve_acc(true_labels, predictions, name)
+        # self.roc_curve_acc(true_labels, predictions, name)
         return
 
     def cross_validation(self,algorithm, features, labels):
@@ -394,31 +397,28 @@ class ClassImbalance:
         print("Cross validation accuracy: " , accuracy_percent)
         return accuracy
 
-    def roc_curve_acc(self, true_labels, predictions, name):
-        # false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(Y_test, Y_pred)
-        # roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
-        # plt.title('ROC Curve')
-        # plt.plot(false_positive_rate, true_positive_rate, color='darkorange',label='AUC = %0.3f'%(roc_auc))
-        # plt.legend(loc='lower right')
-        # plt.plot([0,1],[0,1],'b--')
-        # plt.ylim([-0.1, 1.1])
-        # plt.xlim([-0.1, 1.1])
-        # plt.ylabel('True Positive Rate')
-        # plt.xlabel('False Positive Rate')
-        # plt.tight_layout()
-        # plt.title("ROC Curve")   
-        # plt.savefig("ROC Curve " + name + ".jpeg")
-        # plt.show()
+    # def roc_curve_acc(self, true_labels, predictions, name, col1, col2):
+    #     encoder = LabelEncoder()
+    #     true_labels_new = encoder.fit_transform(true_labels)
+    #     predictions_new = encoder.fit_transform(predictions)
+    #     false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
+    #     roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
+    #     plt.title('ROC Curve')
+    #     #GRAPH DATA
+    #     #plt.figure()
+    #     plt.xlabel('False Positive Rate')
+    #     plt.ylabel('True Positive Rate')
+    #     plt.plot([0, 1], [0, 1], color=col1, linestyle='--')
+    #     plt.xlim([0.0, 1.0])
+    #     plt.ylim([0.0, 1.05])
+    #     plt.title("ROC Curve")
+    #     plt.plot(false_positive_rate, true_positive_rate, color=col2, lw=2, label= name + "area = %0.2f)" % roc_auc)
+    #     plt.legend(loc="lower right")
+    #     plt.savefig("ROC Curve " + name + ".jpeg")
+    #     plt.show()
+    #     return
 
-        # skplt.metrics.plot_roc_curve(true_labels, predictions)
-        # plt.show()
-        return
-
-    def plot_multiple_roc_curves(self):
-        return
-    
-
-    def plot_multiple_accuracies(self):
+    def plot_metrics(self):
         lg_over = abalone.logistic_regression_oversampled()
         lg_over_PCA = abalone.logistic_regression_oversampled_PCA()
         lg_under = abalone.logistic_regression_undersampled()
@@ -428,8 +428,8 @@ class ClassImbalance:
         dc_under = abalone.decision_tree_undersampled()
         dc_under_PCA = abalone.decision_tree_undersampled_PCA()
 
-        accuracies = [lg_over,lg_under, dc_over, dc_under]
-        accuracies_labels = ["lg_over","lg_under", "dc_over", "dc_under"]
+        accuracies = [lg_over[0],lg_under[0], dc_over[0], dc_under[0]]
+        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
         col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
         seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         fig, ax = plt.subplots()
@@ -438,13 +438,13 @@ class ClassImbalance:
         
         plt.ylabel("Accuracy (%)")
         plt.title("Model accuracies")
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")
         plt.xticks(seq)
         plt.legend()
+        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")    
         plt.show()
 
-        accuracies = [lg_under_PCA, lg_over_PCA, dc_over_PCA, dc_under_PCA]
-        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "dc_over_PCA", "dc_under_PCA"]
+        accuracies = [lg_under_PCA[0], lg_over_PCA[0], dc_over_PCA[0], dc_under_PCA[0]]
+        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "dtc_over_PCA", "dtc_under_PCA"]
         col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
         fig, ax = plt.subplots()
         for i in range(4):
@@ -452,9 +452,35 @@ class ClassImbalance:
         
         plt.ylabel("Accuracy (%)")
         plt.title("Model accuracies with PCA")
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree with PCA.jpeg")
         plt.xticks(seq)
         plt.legend()
+        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree with PCA.jpeg")
+        plt.show()
+
+        true_labels = [lg_over[1],lg_under[1], dc_over[1], dc_under[1]]
+        predictions = [lg_over[2],lg_under[2], dc_over[2], dc_under[2]]
+        col1 = ["yellow", "m", "grey", "pink"]
+        col2 = ["blue", "red", "black", "brown", "green", "cyan"]
+        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
+
+        encoder = LabelEncoder()
+
+        for i in range(4):
+            true_labels_new = encoder.fit_transform(true_labels[i])
+            predictions_new = encoder.fit_transform(predictions[i])
+            false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
+            roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
+            #GRAPH DATA
+            #plt.figure()
+            plt.xlabel('False Positive Rate')
+            plt.ylabel('True Positive Rate')
+            plt.plot([0, 1], [0, 1], color=col1[i], linestyle='--')
+            plt.xlim([0.0, 1.0])
+            plt.ylim([0.0, 1.05])
+            plt.plot(false_positive_rate, true_positive_rate, color=col2[i], lw=2, label= accuracies_labels[i] + " area = %0.2f)" % roc_auc)
+        plt.title("ROC Curve showing various classifiers")
+        plt.legend(loc="lower right")
+        plt.savefig("ROC Curve multiple curves.jpeg")
         plt.show()
 
         return
@@ -477,4 +503,4 @@ abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining
 # abalone.decision_tree_undersampled()
 # abalone.decision_tree_undersampled_PCA()
 
-abalone.plot_multiple_accuracies()
+abalone.plot_metrics()
