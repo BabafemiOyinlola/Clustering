@@ -2,6 +2,9 @@ import math
 import random
 import pandas as pd
 import numpy as np
+import scikitplot as skplt
+from pre_processing import Preprocessing
+from sklearn import metrics
 import matplotlib.pyplot as plt
 from sklearn import metrics
 from sklearn.decomposition import PCA
@@ -9,6 +12,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
+from imblearn.over_sampling import SMOTE
+
 
 class ClassImbalance:
     # def __init__(self):
@@ -21,45 +26,9 @@ class ClassImbalance:
         self.data = np.array(data)
         for i in range(self.data.shape[0]):
             self.data[i, 8] = self.data[i, 8].strip()
-    
-        return
-
-    #set k = 4174 - 32 = 4142 (positives = 2)
-    def pre_process_undersample(self, k, label):
-        undersampled_data = np.array([])
-        label_index = []
         
-        #select indexes of rows with specified label
-        for row in range(self.data.shape[0]):
-            if self.data[row, 8] == label:
-                label_index.append(row)
-
-        random_remove = random.sample(label_index, k)
-
-        for i in range(self.data.shape[0]):
-            if i not in random_remove:
-                if len(undersampled_data) == 0:
-                    undersampled_data = self.data[i, :].copy()
-                else:
-                    undersampled_data = np.vstack((undersampled_data, self.data[i, :]))
-
-        return undersampled_data
-
-    def pre_process_oversample(self, k, label):
-        oversampled_data = self.data.copy()
-        label_index = []
-
-        for row in range(self.data.shape[0]):
-            if self.data[row, 8] == label:
-                label_index.append(row)
-
-        for i in range(k):
-            index = label_index[random.randint(0, (len(label_index)-1))]
-            item = self.data[index]
-
-            oversampled_data = np.vstack((oversampled_data, item))
-        return oversampled_data
-
+        return self.data
+    
     def euclidean_distance(self, point1, point2):
         total = 0
         for i in range(len(point1)):
@@ -67,66 +36,79 @@ class ClassImbalance:
 
         return math.sqrt(total)
 
-    #Fix this
-    def smote(self, k, label):
-        data = self.data.copy()
+    def pre_process_undersample(self, k, label, data):
+        undersampled_data = np.array([])
+        label_index = []
+        
+        #select indexes of rows with specified label
+        for row in range(data.shape[0]):
+            if data[row, 8] == label:
+                label_index.append(row)
+
+        random_remove = random.sample(label_index, k)
+
+        for i in range(data.shape[0]):
+            if i not in random_remove:
+                if len(undersampled_data) == 0:
+                    undersampled_data = data[i, :].copy()
+                else:
+                    undersampled_data = np.vstack((undersampled_data, data[i, :]))
+
+        return undersampled_data
+
+    def pre_process_oversample(self, k, label, data):
+        oversampled_data = data.copy()
         label_index = []
 
-        for row in range(self.data.shape[0]):
-            if self.data[row, 8] == label:
+        for row in range(data.shape[0]):
+            if data[row, 8] == label:
                 label_index.append(row)
-        
+
         for i in range(k):
-            rand_item = label_index[random.randint(0, (len(label_index) - 1))]
+            index = label_index[random.randint(0, (len(label_index)-1))]
+            item = data[index]
 
-            #KNN
-            distances = []
-            distance_index = []
-
-            for item in label_index:
-                if item == rand_item:
-                    continue
-                
-                distances.append(self.euclidean_distance(self.data[item], self.data[rand_item]))
-                distance_index.append(item)
-
-            k_neigh = []
-
-            for neigh in range(2):
-                nearest = np.argmin(distances)
-                k_neigh.append(distance_index[nearest])
-                distances[nearest] = float("inf")
-            
-            neigh_rand = k_neigh[random.randint(0, (len(k_neigh) - 1))]
-
-            feat = []
-            for j in range(7):
-                col = self.data[neigh_rand, j] - self.data[rand_item, j]
-                feat.append(col)
-            
-            alpha = random.random()
-
-            all_feat = []
-
-            for j in range(len(feat)):
-                col = self.data[rand_item, j] + alpha*feat[j]
-                all_feat.append(col)
-            
-            all_feat.append(label)
-
-            data = np.vstack((data, all_feat))
-
-        return data
+            oversampled_data = np.vstack((oversampled_data, item))
+        return oversampled_data
+    
+    def smote(self, x_train, y_train):
+        sm = SMOTE(random_state=12, ratio = 1.0)
+        features_train_smote, labels_train_smote = sm.fit_sample(x_train, y_train) 
+        return (features_train_smote, labels_train_smote)
 
     #binary classification
     def logistic_regression_oversampled(self):
-        data = self.pre_process_oversample(4110, "positive")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_and_split_data(data)
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
 
         reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Logisitic Regression - Accuracy over sampled data without PCA: ", accuracy)
@@ -135,7 +117,7 @@ class ClassImbalance:
         # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
         print()
         
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
@@ -143,79 +125,282 @@ class ClassImbalance:
         return cross_val_acc, y_test, pred
 
     def logistic_regression_undersampled(self):
-        data = self.pre_process_undersample(4110, "negative")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_and_split_data(data)
+        train_undersampled = self.pre_process_undersample(1219, "negative", train)
+
+        x_train = np.delete(train_undersampled, obj=8, axis=1)
+        y_train = train_undersampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new encoded columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
 
         reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Logisitic Regression - Accuracy under sampled data without PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
+       
+        return cross_val_acc, y_test, pred
 
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression undersampled data without PCA:")
+    def logistic_regression_smote(self):
+
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        reg = LogisticRegression()
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Logisitic Regression - Accuracy over smote without PCA: ", accuracy)
+        print()
+        self.metrics(pred, y_test)
+        print()
+        
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(reg, features, labels)
+       
+        return cross_val_acc, y_test, pred
+
+    def logistic_regression_smote_PCA(self):
+
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+        
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+        
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        reg = LogisticRegression()
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Logisitic Regression - Accuracy smote with PCA: ", accuracy)
+        print()
+        self.metrics(pred, y_test)
+        print()
+        
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(reg, features, labels)
        
         return cross_val_acc, y_test, pred
 
     def logistic_regression_oversampled_PCA(self):
-        data = self.pre_process_oversample(4110, "positive")
-        
-        x_train, x_test, y_train, y_test = self.process_split_PCA(data)
+        train, test = self.process_and_split_data()
+
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
-
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Logisitic Regression - Accuracy over sampled data after PCA: ", accuracy)
         print()
         
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data - PCA:")
 
         return cross_val_acc, y_test, pred
 
     def logistic_regression_undersampled_PCA(self):
-        data = self.pre_process_undersample(4110, "negative")
-        
-        x_train, x_test, y_train, y_test = self.process_split_PCA(data)
+        train, test = self.process_and_split_data()
+
+        train_undersampled = self.pre_process_undersample(1219, "negative", train)
+
+        x_train = np.delete(train_undersampled, obj=8, axis=1)
+        y_train = train_undersampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new encoded columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
+        reg.fit(features_train, y_train)
+        pred = reg.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Logisitic Regression - Accuracy under sampled data after PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression undersampled data with PCA:")
         return cross_val_acc, y_test, pred
 
     def decision_tree_oversampled(self):
-        data = self.pre_process_oversample(4110, "positive")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_and_split_data(data)
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
 
         tree = DecisionTreeClassifier()
-        tree.fit(x_train, y_train)
-        pred = tree.predict(x_test)
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Decision tree - Accuracy over sampled data without PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
@@ -223,18 +408,135 @@ class ClassImbalance:
         return cross_val_acc, y_test, pred
 
     def decision_tree_undersampled(self):
-        data = self.pre_process_undersample(4110, "negative")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_and_split_data(data)
+        train_undersampled = self.pre_process_undersample(1219, "negative", train)
+
+        x_train = np.delete(train_undersampled, obj=8, axis=1)
+        y_train = train_undersampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new encoded columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
 
         tree = DecisionTreeClassifier()
-        tree.fit(x_train, y_train)
-        pred = tree.predict(x_test)
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Decision tree - Accuracy under sampled data without PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(tree, features, labels)
+       
+        return cross_val_acc, y_test, pred
+    
+    def decision_tree_smote(self):
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+        
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
+
+        tree = DecisionTreeClassifier()
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy smote data without PCA: ", accuracy)
+        print()
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(tree, features, labels)
+       
+        return cross_val_acc, y_test, pred
+
+    def decision_tree_smote_PCA(self):
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+        
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
+
+        tree = DecisionTreeClassifier()
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
+
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy smote with PCA: ", accuracy)
+        print()
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
@@ -242,18 +544,47 @@ class ClassImbalance:
         return cross_val_acc, y_test, pred
 
     def decision_tree_oversampled_PCA(self):
-        data = self.pre_process_oversample(4110, "positive")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_split_PCA(data)
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
+
+         #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         tree = DecisionTreeClassifier()
-        tree.fit(x_train, y_train)
-        pred = tree.predict(x_test)
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Decision tree - Accuracy over sampled data after PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
@@ -261,18 +592,47 @@ class ClassImbalance:
         return cross_val_acc, y_test, pred
 
     def decision_tree_undersampled_PCA(self):
-        data = self.pre_process_undersample(4110, "negative")
+        train, test = self.process_and_split_data()
 
-        x_train, x_test, y_train, y_test = self.process_split_PCA(data)
+        train_undersampled = self.pre_process_undersample(1219, "negative", train)
+
+        x_train = np.delete(train_undersampled, obj=8, axis=1)
+        y_train = train_undersampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new encoded columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         tree = DecisionTreeClassifier()
-        tree.fit(x_train, y_train)
-        pred = tree.predict(x_test)
+        tree.fit(features_train, y_train)
+        pred = tree.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Decision tree - Accuracy under sampled data after PCA: ", accuracy)
         print()
-        features = np.vstack((x_train, x_test))
+        features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
@@ -326,55 +686,67 @@ class ClassImbalance:
         # plt.show()
         return pca.explained_variance_ratio_
 
-    def process_and_split_data(self, data):
-        labels  = data[:, 8]
-        features =  np.delete(data, obj=8, axis=1)
+    def process_and_split_data(self):
+        data = self.data
+        positive_class = []
+        negative_class = []
 
-        #one hot encode sex
-        new_col = pd.get_dummies(features[:, 0])
-        #create new columns for sex class
-        new_col = np.array(new_col)
-        #add the new columns to features
-        features = np.column_stack([features, new_col])
-        #delete sex column 
-        features =  np.delete(features, obj=0, axis=1)
-        variance = self.percentage_of_variance(features,"Abalone", 5)  
-        # print("Feature variances: ", variance)
-        #this shows that only the length, diameter and height contribute a greater percentage
-        #drop other features
+        train, test = [], []
 
-        features = self.PCA(features, 5)
+        for row in range(data.shape[0]):
+            if data[row, 8] == "negative":
+                negative_class.append(data[row])
+            else:
+                positive_class.append(data[row])
 
-        variance = self.percentage_of_variance(features, "Abalone", 5) 
+        positive_class = np.array(positive_class)
+        negative_class = np.array(negative_class)
+        
+        #split in 30% test and 70% train
+        pos_num = int(0.3 * len(positive_class))
+        neg_num = int(0.3 * len(negative_class))
 
-        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+        for i in range(pos_num):
+            index = random.randint(0, (len(positive_class)-1))
+            item = positive_class[index]
+            test.append(item)         
+            positive_class = np.delete(positive_class, obj=index, axis=0)
+        
+        for i in range(neg_num):
+            index = random.randint(0, (len(negative_class)-1))
+            item = negative_class[index]
+            test.append(item)         
+            negative_class = np.delete(negative_class, obj=index, axis=0)
 
-        # self.x_train, self.x_test, self.y_train, self.y_test = x_train, x_test, y_train, y_test
+        test = np.array(test)
 
-        return (x_train, x_test, y_train, y_test)
+        for i in range(len(positive_class)):
+            train.append(positive_class[i])
+        for i in range(len(negative_class)):
+            train.append(negative_class[i])
+        
+        train = np.array(train)
 
-    def process_split_PCA(self, data):
-        labels  = data[:, 8]
-        features =  np.delete(data, obj=8, axis=1)
+        return (train, test)
 
-        #one hot encode sex
-        new_col = pd.get_dummies(features[:, 0])
-        #create new columns for sex class
-        new_col = np.array(new_col)
-        #add the new columns to features
-        features = np.column_stack([features, new_col])
-        #delete sex column 
-        features =  np.delete(features, obj=0, axis=1)
-        variance = self.percentage_of_variance(features, "Abalone", 5)  
-        # print("Feature variances: ", variance)
-        #this shows that only the length, diameter and height contribute a greater percentage
-        #drop other features
+    # def process_split_PCA(self, data):
+    #     labels  = data[:, 8]
+    #     features =  np.delete(data, obj=8, axis=1)
 
-        features = self.PCA(features, 5)
-        variance = self.percentage_of_variance(features, "Abalone", 5) 
-        x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+    #     #one hot encode sex
+    #     new_col = pd.get_dummies(features[:, 0])
+    #     #create new columns for sex class
+    #     new_col = np.array(new_col)
+    #     #add the new columns to features
+    #     features = np.column_stack([features, new_col])
+    #     #delete sex column 
+    #     features =  np.delete(features, obj=0, axis=1)
 
-        return (x_train, x_test, y_train, y_test)
+    #     features = self.PCA(features, 5)
+    #     variance = self.percentage_of_variance(features, "Abalone", 5) 
+    #     x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
+
+    #     return (x_train, x_test, y_train, y_test)
 
     def metrics(self, predictions, true_labels, name=""):
         accuracy = metrics.accuracy_score(true_labels, predictions)
@@ -398,49 +770,66 @@ class ClassImbalance:
         lg_over_PCA = abalone.logistic_regression_oversampled_PCA()
         lg_under = abalone.logistic_regression_undersampled()
         lg_under_PCA = abalone.logistic_regression_undersampled_PCA()
+        lg_SMOTE = abalone.logistic_regression_smote()
+        lg_SMOTE_PCA = abalone.logistic_regression_smote_PCA()
+
         dc_over = abalone.decision_tree_oversampled()
         dc_over_PCA = abalone.decision_tree_oversampled_PCA()
         dc_under = abalone.decision_tree_undersampled()
         dc_under_PCA = abalone.decision_tree_undersampled_PCA()
+        dc_SMOTE = abalone.decision_tree_smote()
+        dc_SMOTE_PCA = abalone.decision_tree_smote_PCA()
 
-        accuracies = [lg_over[0],lg_under[0], dc_over[0], dc_under[0]]
-        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
-        col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
-        seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        accuracies = [lg_over[0],lg_under[0], lg_SMOTE[0], dc_over[0], dc_under[0], dc_SMOTE[0]]
+        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
+
+        accuracies_PCA = [lg_under_PCA[0], lg_over_PCA[0], lg_SMOTE_PCA[0], dc_over_PCA[0], dc_under_PCA[0], dc_over_PCA[0]]
+        accuracies_labels_PCA = ["lg_under_PCA", "lg_over_PCA", "lg_SMOTE_PCA", "dtc_over_PCA", "dtc_under_PCA", "dtc_SMOTE_PCA"]
+
+        means, means_PCA = [], []
+        std_dev, std_dev_PCA = [], []
+        x_axis = np.arange(len(accuracies))
+
+        for i in range(len(accuracies)):
+            temp = np.array(accuracies[i])
+            mean = np.mean(temp)
+            std = np.std(temp)
+            means.append(mean)
+            std_dev.append(std)
+
+        for i in range(len(accuracies_PCA)):
+            temp = np.array(accuracies_PCA[i])
+            mean = np.mean(temp)
+            std = np.std(temp)
+            means_PCA.append(mean)
+            std_dev_PCA.append(std)
+
+       
+        width = 0.25
         fig, ax = plt.subplots()
-        for i in range(4):
-            ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
-        
-        plt.ylabel("Accuracy (%)")
-        plt.title("Model accuracies")
-        plt.xticks(seq)
-        plt.legend()
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")    
+        plt1 = ax.bar(x_axis, means, width,  yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
+        plt2 = ax.bar(x_axis+width, means_PCA, width, yerr=std_dev_PCA, align='center', alpha=0.5, ecolor='black', capsize=10, color="darkblue")
+        ax.set_ylabel("Accuracy (%)")
+        ax.set_xticks(x_axis)
+        ax.set_xticklabels(accuracies_labels)
+        ax.set_title("Average model accuracy and error")
+        ax.yaxis.grid(True)
+        ax.legend((plt1[0], plt2[0]), ("Before PCA", "After PCA"))
+        plt.xticks(rotation=90)
+        plt.tight_layout()
+        plt.savefig("Model accuracy for Abalone - Class Imbalance")
         plt.show()
 
-        accuracies = [lg_under_PCA[0], lg_over_PCA[0], dc_over_PCA[0], dc_under_PCA[0]]
-        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "dtc_over_PCA", "dtc_under_PCA"]
-        col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
-        fig, ax = plt.subplots()
-        for i in range(4):
-            ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
-        
-        plt.ylabel("Accuracy (%)")
-        plt.title("Model accuracies with PCA")
-        plt.xticks(seq)
-        plt.legend()
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree with PCA.jpeg")
-        plt.show()
 
-        true_labels = [lg_over[1],lg_under[1], dc_over[1], dc_under[1]]
-        predictions = [lg_over[2],lg_under[2], dc_over[2], dc_under[2]]
-        col1 = ["yellow", "m", "grey", "pink"]
+        true_labels = [lg_over[1],lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
+        predictions = [lg_over[2],lg_under[2], lg_SMOTE_PCA[2], dc_over[2], dc_under[2], dc_SMOTE_PCA[2]]
+        col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan"]
-        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
+        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
 
         encoder = LabelEncoder()
 
-        for i in range(4):
+        for i in range(len(true_labels) - 1):
             true_labels_new = encoder.fit_transform(true_labels[i])
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
@@ -462,20 +851,21 @@ class ClassImbalance:
 
 
 abalone = ClassImbalance()
-abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/abalone19.csv")
-# undersampled = abalone.pre_process_undersample(4110, "negative") 
-# oversampled = abalone.pre_process_oversample(4110, "positive")
+data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 
 # abalone.plot_imbalance()
 
-
-# abalone.logistic_regression_oversampled()
-# abalone.logistic_regression_oversampled_PCA()
-# abalone.logistic_regression_undersampled()
-# abalone.logistic_regression_undersampled_PCA()
-# abalone.decision_tree_oversampled()
-# abalone.decision_tree_oversampled_PCA()
-# abalone.decision_tree_undersampled()
-# abalone.decision_tree_undersampled_PCA()
+abalone.logistic_regression_smote()
+abalone.logistic_regression_smote_PCA()
+abalone.logistic_regression_oversampled()
+abalone.logistic_regression_oversampled_PCA()
+abalone.logistic_regression_undersampled()
+abalone.logistic_regression_undersampled_PCA()
+abalone.decision_tree_smote()
+abalone.decision_tree_smote_PCA()
+abalone.decision_tree_oversampled()
+abalone.decision_tree_oversampled_PCA()
+abalone.decision_tree_undersampled()
+abalone.decision_tree_undersampled_PCA()
 
 abalone.plot_metrics()

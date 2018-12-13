@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 class Preprocessing:
-    def __init__(self, filepath):
+    def __init__(self, filepath=""):
         self.filepath = filepath
 
     def read_data_Joensuu(self):
