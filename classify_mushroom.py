@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scikitplot as skplt
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn import metrics, preprocessing
@@ -8,10 +9,33 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 
 class  ClassifyMushroom:
-    def __init__ (self, data):
-        self.features = data[0]
-        self.labels = data[1]
+    def __init__ (self):
+        self.features = []
+        self.labels = []
 
+    def read_mushroom_data(self, filepath):
+        read = open(filepath, "r")
+        content = read.readlines()
+        if(len(content) == 0):
+            return
+        else:
+            len_content = len(content[0].rstrip().split(",")) #Split the first line in content to obtain number of columns/ features
+            data_array = np.empty((len(content), len_content), dtype=str) #Create an empty array to store dataitems
+            for line in range(len(content)):
+                data_array[line] = content[line].split(",")
+
+            read.close()
+            labels = data_array[:, 0]
+            features =  np.delete(data_array, obj=0, axis=1)
+            # data_array = []
+            
+            self.features = features
+            self.labels = labels
+            self.data = data_array
+
+            return (data_array)
+        
+    #random forest with missing data predicted
     def random_forest_classifier1(self):
         '''Using random forests'''
         #predict missing data
@@ -45,6 +69,7 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test, name)
         return
 
+    #random forest with missing data filled with mode
     def random_forest_classifier2(self):
         '''Using random forests'''
         #Fill missing data with mode
@@ -77,6 +102,7 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test)
         return
 
+    #logistic regression with missing data predicted
     def logistic_regression1(self):
         '''Using Logistic Regression'''
         self.predict_missing_data()
@@ -112,7 +138,8 @@ class  ClassifyMushroom:
         print("Logistics Regression 1 metrics: ")
         self.metrics(pred, y_test, name)
         return
-
+   
+    #logistic regression with missing data filled with mode
     def logistic_regression2(self):
         '''Using Logistic Regression'''
         self.fill_missing_data_with_mode()
@@ -145,6 +172,7 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test)
         return
 
+    #logistic regression with missing data predicted
     def logistic_regression1_PCA(self):
         '''Using Logistic Regression'''
         self.predict_missing_data()
@@ -180,6 +208,68 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test)
         return
 
+    #logistic regression with missing data rows deleted
+    def logistic_regression_del_rows(self):
+        '''Using Logistic Regression'''
+        self.del_missing_value_rows()
+
+        name = "-Logistic Regression. Missing value rows deleted"
+
+        features_encoded = np.array([])
+
+        for col in range(self.features.shape[1]):
+            temp = pd.get_dummies(self.features[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                features_encoded = temp
+            else:
+                features_encoded = np.column_stack([features_encoded, temp])
+
+        x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
+
+        reg = LogisticRegression()
+        reg.fit(x_train, y_train)
+        pred = reg.predict(x_test)
+
+        print("Logistic Regression|Missing value feature deleted|CV")
+        self.cross_validation(reg, features_encoded, self.labels)
+        print("Logistics Regression 1 metrics: ")
+        self.metrics(pred, y_test, "e", name)
+        return
+
+    #logistic regression with missing data feature deleted
+    def logistic_regression_del_feat(self):
+        '''Using Logistic Regression'''
+        self.delete_missing_val_feature()
+
+        # reduce dimentionality
+        name = "-Logistic Regression. Missing featured deleted"
+        # self.PCA(features_encoded)
+        # self.percentage_of_variance(features_encoded, name)
+
+        features_encoded = np.array([])
+
+        for col in range(self.features.shape[1]):
+            temp = pd.get_dummies(self.features[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                features_encoded = temp
+            else:
+                features_encoded = np.column_stack([features_encoded, temp])
+
+        x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
+
+        reg = LogisticRegression()
+        reg.fit(x_train, y_train)
+        pred = reg.predict(x_test)
+
+        print("Logistic Regression|Missing value feature deleted|CV")
+        self.cross_validation(reg, features_encoded, self.labels)
+        print("Logistics Regression 1 metrics: ")
+        self.metrics(pred, y_test, "e", name)
+        return
+
+    #logistic regression with missing data filled with mode
     def logistic_regression2_PCA(self):
         '''Using Logistic Regression'''
         self.fill_missing_data_with_mode()
@@ -215,9 +305,7 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test, name)
         return
 
-    # def decision_trees(self):
-    #     return
-
+    #handle missing data by predicting values
     def predict_missing_data(self):
         '''In the mushroom dataset, there are missing values. Here, it is handled by predicting with
         random forests'''
@@ -277,6 +365,7 @@ class  ClassifyMushroom:
  
         return
 
+    #handle missing data by filling with mode
     def fill_missing_data_with_mode(self):
         miss_col = self.features[:, 10]
         
@@ -310,15 +399,39 @@ class  ClassifyMushroom:
            print("Missing data not handled")
            return False
 
-    def metrics(self, predictions, true_labels, name=""):
+    #handle missing data by deleting feature contsining missing values (PCA argument)
+    def delete_missing_val_feature(self):
+        features = self.features
+        new_feautures = np.delete(features, obj=10, axis=1)
+        self.features = new_feautures   
+        return
+    
+    def del_missing_value_rows(self):
+        data = self.data.copy()
+        length = data.shape[0]
+        for i in range(length - 1, 0, -1):
+            if data[i, 11] == "?":
+                data = np.delete(data, obj=i, axis=0)
+                length = data.shape[0]
+                continue
+
+        labels = data[:, 0]
+        features =  np.delete(data, obj=0, axis=1)
+
+        self.features = features
+        self.labels = labels
+
+        return
+
+    def metrics(self, predictions, true_labels, recall_label, name=""):
         accuracy = metrics.accuracy_score(true_labels, predictions)
         confusion_matrix = metrics.confusion_matrix(true_labels, predictions)
-        recall = metrics.recall_score(true_labels, predictions)
+        recall = metrics.recall_score(true_labels, predictions, pos_label=recall_label)
         # precision = metrics.pr
         print("Accuracy: ",accuracy)
-        print("Confusion matrix: ", confusion_matrix)
+        print("Confusion matrix: \n", confusion_matrix)
         print("Recall: ",recall)
-        self.roc_curve_acc(true_labels, predictions, name)
+        # self.roc_curve_acc(true_labels, predictions, name, recall_label)
         return
 
     def PCA(self, data):
@@ -352,8 +465,8 @@ class  ClassifyMushroom:
 
         return
 
-    def roc_curve_acc(self, Y_test, Y_pred, name):
-        false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(Y_test, Y_pred)
+    def roc_curve_acc(self, Y_test, Y_pred, name, pos_lab):
+        false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(Y_test, Y_pred, pos_label=pos_lab)
         roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
         plt.title('ROC Curve')
         plt.plot(false_positive_rate, true_positive_rate, color='darkorange',label='AUC = %0.3f'%(roc_auc))
