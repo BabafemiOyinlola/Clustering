@@ -208,7 +208,6 @@ class ClassImbalance:
         print("Logisitic Regression - Accuracy over smote without PCA: ", accuracy)
         print()
         self.metrics(pred, y_test)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
         print()
         
         features = np.vstack((features_train, features_test))
@@ -262,7 +261,6 @@ class ClassImbalance:
         print("Logisitic Regression - Accuracy smote with PCA: ", accuracy)
         print()
         self.metrics(pred, y_test)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
         print()
         
         features = np.vstack((features_train, features_test))
@@ -317,7 +315,6 @@ class ClassImbalance:
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data - PCA:")
 
         return cross_val_acc, y_test, pred
 
@@ -367,7 +364,6 @@ class ClassImbalance:
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression undersampled data with PCA:")
         return cross_val_acc, y_test, pred
 
     def decision_tree_oversampled(self):
@@ -776,31 +772,63 @@ class ClassImbalance:
         lg_over_PCA = abalone.logistic_regression_oversampled_PCA()
         lg_under = abalone.logistic_regression_undersampled()
         lg_under_PCA = abalone.logistic_regression_undersampled_PCA()
+        lg_SMOTE = abalone.logistic_regression_smote()
+        lg_SMOTE_PCA = abalone.logistic_regression_smote_PCA()
+
         dc_over = abalone.decision_tree_oversampled()
         dc_over_PCA = abalone.decision_tree_oversampled_PCA()
         dc_under = abalone.decision_tree_undersampled()
         dc_under_PCA = abalone.decision_tree_undersampled_PCA()
+        dc_SMOTE = abalone.decision_tree_smote()
+        dc_SMOTE_PCA = abalone.decision_tree_smote_PCA()
 
-        accuracies = [lg_over[0],lg_under[0], dc_over[0], dc_under[0]]
-        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
+        accuracies = [lg_over[0],lg_under[0], lg_SMOTE[0], dc_over[0], dc_under[0], dc_SMOTE[0]]
+        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
         col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
         seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        means = []
+        std_dev = []
+        x_axis = np.arange(len(accuracies))
+
+        for i in range(len(accuracies)):
+            temp = np.array(accuracies[i])
+            mean = np.mean(temp)
+            std = np.std(temp)
+            means.append(mean)
+            std_dev.append(std)
+
+       
         fig, ax = plt.subplots()
-        for i in range(4):
-            ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
-        
-        plt.ylabel("Accuracy (%)")
-        plt.title("Model accuracies")
-        plt.xticks(seq)
-        plt.legend()
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")    
+        ax.bar(x_axis, means, yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
+        ax.set_ylabel("Accuracy (%)")
+        ax.set_xticks(x_axis)
+        ax.set_xticklabels(accuracies_labels)
+        ax.set_title("Average model accuracy and error")
+        ax.yaxis.grid(True)
+
+        plt.tight_layout()
+        plt.savefig("Model accuracy for Abalone - Class Imbalance")
         plt.show()
 
-        accuracies = [lg_under_PCA[0], lg_over_PCA[0], dc_over_PCA[0], dc_under_PCA[0]]
-        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "dtc_over_PCA", "dtc_under_PCA"]
+
+        # fig, ax = plt.subplots()
+        # for i in range(4):
+        #     ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
+        
+        # plt.ylabel("Accuracy (%)")
+        # plt.title("Model accuracies")
+        # plt.xticks(seq)
+        # plt.legend()
+        # plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")    
+        # plt.show()
+
+        accuracies = [lg_under_PCA[0], lg_over_PCA[0], lg_SMOTE_PCA[0], dc_over_PCA[0], dc_under_PCA[0], dc_over_PCA[0]]
+        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "lg_SMOTE_PCA", "dtc_over_PCA", "dtc_under_PCA", "dtc_SMOTE_PCA"]
         col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
+        
         fig, ax = plt.subplots()
-        for i in range(4):
+        for i in range(len(accuracies) - 1):
             ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
         
         plt.ylabel("Accuracy (%)")
@@ -810,15 +838,15 @@ class ClassImbalance:
         plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree with PCA.jpeg")
         plt.show()
 
-        true_labels = [lg_over[1],lg_under[1], dc_over[1], dc_under[1]]
-        predictions = [lg_over[2],lg_under[2], dc_over[2], dc_under[2]]
-        col1 = ["yellow", "m", "grey", "pink"]
+        true_labels = [lg_over[1],lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
+        predictions = [lg_over[2],lg_under[2], lg_SMOTE_PCA[2], dc_over[2], dc_under[2], dc_SMOTE_PCA[2]]
+        col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan"]
-        accuracies_labels = ["lg_over","lg_under", "dtc_over", "dtc_under"]
+        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
 
         encoder = LabelEncoder()
 
-        for i in range(4):
+        for i in range(len(true_labels) - 1):
             true_labels_new = encoder.fit_transform(true_labels[i])
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
@@ -841,17 +869,8 @@ class ClassImbalance:
 
 abalone = ClassImbalance()
 data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
-# undersampled = abalone.pre_process_undersample(4110, "negative") 
-# oversampled = abalone.pre_process_oversample(4110, "positive")
 
 # abalone.plot_imbalance()
-
-# abalone.process_and_split_data(data)
-# abalone.logistic_regression_oversampled()
-# abalone.logistic_regression_undersampled()
-# abalone.decision_tree_oversampled()
-# abalone.decision_tree_undersampled()
-
 
 abalone.logistic_regression_smote()
 abalone.logistic_regression_smote_PCA()
