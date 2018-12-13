@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 
 class Preprocessing:
-    def __init__(self, filepath):
+    def __init__(self, filepath=""):
         self.filepath = filepath
 
     def read_data_Joensuu(self):
@@ -27,14 +27,29 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_mean = np.mean(data[:, i])
             col_std = np.std(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
                 data_copy[j, i] = (data[j, i] - col_mean) / col_std
+
+        return data_copy 
+
+    #remove values < -3 and > 3
+    def remove_outliers(self, data):
+        data_copy = data.copy()
+        length = data_copy.shape[0]
+        for i in range(length - 1, 0, -1):
+            if data[i, 0] < -3.0 or data[i, 0] > 3.0:
+                # print(data[i, 0])
+                data_copy = np.delete(data_copy, obj=i, axis=0)
+                length = data_copy.shape[0]
+                continue
+            elif data[i, 1] < -3.0 or data[i, 1] > 3.0:
+                # print(data[i, 1])
+                data_copy = np.delete(data_copy, obj=i, axis=0)
+                continue
 
         return data_copy 
 
@@ -43,12 +58,10 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_max = np.amax(data[:, i])
             col_min = np.amin(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
                 data_copy[j, i] = (data[j, i] - col_min) / (col_max - col_min)
         return data_copy
@@ -58,24 +71,16 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_mean= np.mean(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
-                #apply the normalisation range(0, 1) formula to each cell: x_cen =  (x - col_mean)
                 data_copy[j, i] = data[j, i] - col_mean
 
         return data_copy
 
-<<<<<<< HEAD
-    def PCA(self, data, n=2):
-        pca = PCA(n_components=n)
-=======
     def PCA(self, data):
         pca = PCA(n_components=2) #we have two components
->>>>>>> 34f58092bf9fdc84e5a0d704b1d11964b7f5842d
         pca.fit(data)
         cof = pca.components_
         trasform_data = pca.transform(data)
@@ -102,9 +107,7 @@ class Preprocessing:
         fig.tight_layout()   
         plt.savefig(title + ".jpeg" ,bbox_inches= "tight")
         plt.show()
-<<<<<<< HEAD
         return
-=======
         
     def read_mushroom_data(self):
         read = open(self.filepath, "r")
@@ -122,4 +125,3 @@ class Preprocessing:
             features =  np.delete(data_array, obj=0, axis=1)
             data_array = []
             return (features, labels)
->>>>>>> 34f58092bf9fdc84e5a0d704b1d11964b7f5842d

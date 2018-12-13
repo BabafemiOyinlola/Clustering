@@ -33,7 +33,7 @@ class HierachicalClustering:
 
         return distanceMatrix
 
-    def cluster(self, data):
+    def cluster(self, data, n, title):
         distance = self.distance(data)
         
         #Calculate time:
@@ -46,16 +46,13 @@ class HierachicalClustering:
         # plt.savefig("Location dendrogram without pruning")     
         
         #prune tree
-        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =4)
-        plt.title("Location dendrogram showing 4 clusters") 
-        plt.savefig("Location dendrogram showing 4 clusters")  
-
-        # sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 3)
-        # plt.savefig("Location dendrogram prunned at level p=3") 
+        
+        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =n)
+        plt.title(title + "showing " + str(n) + " clusters")
+        plt.savefig(title + "showing " + str(n) + " clusters" + ".jpeg", bbox_inches="tight")
 
         # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
         # plt.savefig("Location dendrogram prunned at p=0.15")
-
 
         end_time = time.process_time() - start_time 
         print("Time for Hierarchical Clustering: ", end_time)
