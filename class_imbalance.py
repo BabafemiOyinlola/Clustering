@@ -784,11 +784,12 @@ class ClassImbalance:
 
         accuracies = [lg_over[0],lg_under[0], lg_SMOTE[0], dc_over[0], dc_under[0], dc_SMOTE[0]]
         accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
-        col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
-        seq = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-        means = []
-        std_dev = []
+        accuracies_PCA = [lg_under_PCA[0], lg_over_PCA[0], lg_SMOTE_PCA[0], dc_over_PCA[0], dc_under_PCA[0], dc_over_PCA[0]]
+        accuracies_labels_PCA = ["lg_under_PCA", "lg_over_PCA", "lg_SMOTE_PCA", "dtc_over_PCA", "dtc_under_PCA", "dtc_SMOTE_PCA"]
+
+        means, means_PCA = [], []
+        std_dev, std_dev_PCA = [], []
         x_axis = np.arange(len(accuracies))
 
         for i in range(len(accuracies)):
@@ -798,45 +799,29 @@ class ClassImbalance:
             means.append(mean)
             std_dev.append(std)
 
+        for i in range(len(accuracies_PCA)):
+            temp = np.array(accuracies_PCA[i])
+            mean = np.mean(temp)
+            std = np.std(temp)
+            means_PCA.append(mean)
+            std_dev_PCA.append(std)
+
        
+        width = 0.25
         fig, ax = plt.subplots()
-        ax.bar(x_axis, means, yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
+        plt1 = ax.bar(x_axis, means, width,  yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
+        plt2 = ax.bar(x_axis+width, means_PCA, width, yerr=std_dev_PCA, align='center', alpha=0.5, ecolor='black', capsize=10, color="darkblue")
         ax.set_ylabel("Accuracy (%)")
         ax.set_xticks(x_axis)
         ax.set_xticklabels(accuracies_labels)
         ax.set_title("Average model accuracy and error")
         ax.yaxis.grid(True)
-
+        ax.legend((plt1[0], plt2[0]), ("Before PCA", "After PCA"))
+        plt.xticks(rotation=90)
         plt.tight_layout()
         plt.savefig("Model accuracy for Abalone - Class Imbalance")
         plt.show()
 
-
-        # fig, ax = plt.subplots()
-        # for i in range(4):
-        #     ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
-        
-        # plt.ylabel("Accuracy (%)")
-        # plt.title("Model accuracies")
-        # plt.xticks(seq)
-        # plt.legend()
-        # plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree.jpeg")    
-        # plt.show()
-
-        accuracies = [lg_under_PCA[0], lg_over_PCA[0], lg_SMOTE_PCA[0], dc_over_PCA[0], dc_under_PCA[0], dc_over_PCA[0]]
-        accuracies_labels = ["lg_under_PCA", "lg_over_PCA", "lg_SMOTE_PCA", "dtc_over_PCA", "dtc_under_PCA", "dtc_SMOTE_PCA"]
-        col = ["yellow", "m", "grey", "pink", "blue", "red", "black", "brown", "green", "cyan"]
-        
-        fig, ax = plt.subplots()
-        for i in range(len(accuracies) - 1):
-            ax.plot(seq, accuracies[i], color=col[i], label=accuracies_labels[i])
-        
-        plt.ylabel("Accuracy (%)")
-        plt.title("Model accuracies with PCA")
-        plt.xticks(seq)
-        plt.legend()
-        plt.savefig("Model accuracies for undersampling and oversampling unsing Logistic Reg and Decision tree with PCA.jpeg")
-        plt.show()
 
         true_labels = [lg_over[1],lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
         predictions = [lg_over[2],lg_under[2], lg_SMOTE_PCA[2], dc_over[2], dc_under[2], dc_SMOTE_PCA[2]]
