@@ -1,7 +1,8 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+
 
 class Preprocessing:
     def __init__(self, filepath=""):
@@ -27,14 +28,29 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_mean = np.mean(data[:, i])
             col_std = np.std(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
                 data_copy[j, i] = (data[j, i] - col_mean) / col_std
+
+        return data_copy 
+
+    #remove values < -3 and > 3
+    def remove_outliers(self, data):
+        data_copy = data.copy()
+        length = data_copy.shape[0]
+        for i in range(length - 1, 0, -1):
+            if data[i, 0] < -3.0 or data[i, 0] > 3.0:
+                # print(data[i, 0])
+                data_copy = np.delete(data_copy, obj=i, axis=0)
+                length = data_copy.shape[0]
+                continue
+            elif data[i, 1] < -3.0 or data[i, 1] > 3.0:
+                # print(data[i, 1])
+                data_copy = np.delete(data_copy, obj=i, axis=0)
+                continue
 
         return data_copy 
 
@@ -43,12 +59,10 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_max = np.amax(data[:, i])
             col_min = np.amin(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
                 data_copy[j, i] = (data[j, i] - col_min) / (col_max - col_min)
         return data_copy
@@ -58,13 +72,10 @@ class Preprocessing:
 
         rows = data.shape[0]
         cols = data.shape[1]
-        #do this for each column in the matrix
         for i in range(cols):
             col_mean= np.mean(data[:, i])
 
-            #Iterate through the rows in that column
             for j in range(rows):
-                #apply the normalisation range(0, 1) formula to each cell: x_cen =  (x - col_mean)
                 data_copy[j, i] = data[j, i] - col_mean
 
         return data_copy
@@ -74,13 +85,12 @@ class Preprocessing:
         pca.fit(data)
         cof = pca.components_
         trasform_data = pca.transform(data)
-
         return trasform_data
     
     def percentage_of_variance(self, data):
         pca = PCA(n_components=2) #we have two components
         pca.fit(data)
-        # cof = pca.components_
+        cof = pca.components_
         plt.bar([1, 2], pca.explained_variance_ratio_, tick_label= [1, 2])
         plt.xlabel("Principal Component")
         plt.ylabel("% Variance Explained")
@@ -97,6 +107,7 @@ class Preprocessing:
         fig.tight_layout()   
         plt.savefig(title + ".jpeg" ,bbox_inches= "tight")
         plt.show()
+        return
         
     def read_mushroom_data(self):
         read = open(self.filepath, "r")

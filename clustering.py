@@ -1,10 +1,10 @@
 import math
 import time
+
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.cluster as sc
-import matplotlib.pyplot as plt
 import scipy.spatial.distance as sd
-import matplotlib.pyplot as plt
 
 
 class HierachicalClustering:
@@ -27,52 +27,61 @@ class HierachicalClustering:
 
         return distanceMatrix
 
-    def cluster(self, data):
-        distance = self.distance(data)
-        
-        #Calculate time:
-        start_time = time.process_time() #start time
+    def cluster(self, data, n, title):
+        try:
+            if n <= 0:
+                raise Exception("Number of clusters is invalid")
+                return
+            else:
+                distance = self.distance(data)
+                
+                #Calculate time:
+                start_time = time.process_time() #start time
 
-        condenced_distance = sd.squareform(distance)
-        linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
-       
-        # sc.hierarchy.dendrogram(linkage)  
-        # plt.savefig("Location dendrogram without pruning")     
-        
-        #prune tree
-        sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =4)
-        plt.title("Location dendrogram showing 4 clusters") 
-        plt.savefig("Location dendrogram showing 4 clusters")  
+                condenced_distance = sd.squareform(distance)
+                linkage = sc.hierarchy.linkage(condenced_distance) #link points based on distance
+            
+                # sc.hierarchy.dendrogram(linkage)  
+                # plt.savefig("Location dendrogram without pruning")     
+                
+                #prune tree
+                sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =n)
+                plt.title(title + "showing " + str(n) + " clusters")
+                plt.savefig(title + "showing " + str(n) + " clusters" + ".jpeg", bbox_inches="tight")
 
-        # sc.hierarchy.dendrogram(linkage, truncate_mode="level", p = 3)
-        # plt.savefig("Location dendrogram prunned at level p=3") 
+                # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
+                # plt.savefig("Location dendrogram prunned at p=0.15")
 
-        # sc.hierarchy.dendrogram(linkage, truncate_mode="lastp", p =0.1)
-        # plt.savefig("Location dendrogram prunned at p=0.15")
+                end_time = time.process_time() - start_time 
+                print("Time for Hierarchical Clustering: ", end_time)
+
+                plt.show()
+                return
+        except Exception as error:
+            print(error)
 
 
-        end_time = time.process_time() - start_time 
-        print("Time for Hierarchical Clustering: ", end_time)
 
-        plt.show()
-        return
 
 class KMeans:
     def __init__ (self, k = 3):
-        # try:
-            # if k > 5 :
-            #     self.k = None
-            #     raise Exception("Maximum clusters is 5")
-            # elif k < 1:
-            #     self.k = None
-            #     raise Exception("Minimum clusters is 2")
-            # else:
-        self.k = k
-        self.grouped_points = []
-        self.centroids = []
-        self.iter = 0
-        # except Exception as error:
-        #     print(error)
+        try:
+            if k > 10 :
+                self.k = None
+                raise Exception("Maximum clusters input is 10")
+            elif k <= 0:
+                self.k = None
+                raise Exception("Number of clusters is invalid")
+            elif k < 1:
+                self.k = None
+                raise Exception("Minimum clusters input is 2")    
+            else:
+                self.k = k
+                self.grouped_points = []
+                self.centroids = []
+                self.iter = 0
+        except Exception as error:
+            print(error)
 
     def initial_centroids(self, data):
         #choose initial centroids
@@ -211,28 +220,3 @@ class KMeans:
                 return
         except Exception as error:
             print(error)
-
-class ElbowMethod:
-    # def __init__(self, points, centroids):
-    #     self.points = points
-    #     self.centroids = centroids
-
-    def sum_of_squared_errors(self, points, centroids):
-
-        distances = []
-        
-        for i in range(len(centroids)):
-            dist = 0
-            temp = points[i]
-            for j in range(len(temp)):
-                dist = pow((temp[j][0] - centroids[i][0]), 2) + pow((temp[j][1] - centroids[i][1]), 2)
-                # dist_y = pow((temp[j][1] - centroids[i][1]), 2)
-            # dist = dist_x + dist_y + dist
-                distances.append(dist)
-        
-        sse = 0
-        for i in range(len(distances)):
-            sse = sse + distances[i]
-
-        return(sse)
-

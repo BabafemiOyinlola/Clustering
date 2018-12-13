@@ -1,18 +1,19 @@
 import math
 import random
-import pandas as pd
-import numpy as np
-import scikitplot as skplt
-from pre_processing import Preprocessing
-from sklearn import metrics
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import scikitplot as skplt
+from imblearn.over_sampling import SMOTE
 from sklearn import metrics
 from sklearn.decomposition import PCA
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from imblearn.over_sampling import SMOTE
+from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.tree import DecisionTreeClassifier
+
+from pre_processing import Preprocessing
 
 
 class ClassImbalance:
@@ -850,22 +851,22 @@ class ClassImbalance:
         return
 
 
-abalone = ClassImbalance()
-data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
+# abalone = ClassImbalance()
+# data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 
-# abalone.plot_imbalance()
+# # abalone.plot_imbalance()
 
-abalone.logistic_regression_smote()
-abalone.logistic_regression_smote_PCA()
-abalone.logistic_regression_oversampled()
-abalone.logistic_regression_oversampled_PCA()
-abalone.logistic_regression_undersampled()
-abalone.logistic_regression_undersampled_PCA()
-abalone.decision_tree_smote()
-abalone.decision_tree_smote_PCA()
-abalone.decision_tree_oversampled()
-abalone.decision_tree_oversampled_PCA()
-abalone.decision_tree_undersampled()
-abalone.decision_tree_undersampled_PCA()
+# abalone.logistic_regression_smote()
+# abalone.logistic_regression_smote_PCA()
+# abalone.logistic_regression_oversampled()
+# abalone.logistic_regression_oversampled_PCA()
+# abalone.logistic_regression_undersampled()
+# abalone.logistic_regression_undersampled_PCA()
+# abalone.decision_tree_smote()
+# abalone.decision_tree_smote_PCA()
+# abalone.decision_tree_oversampled()
+# abalone.decision_tree_oversampled_PCA()
+# abalone.decision_tree_undersampled()
+# abalone.decision_tree_undersampled_PCA()
 
-abalone.plot_metrics()
+# abalone.plot_metrics()
