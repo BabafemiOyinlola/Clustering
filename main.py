@@ -1,7 +1,6 @@
 from pre_processing import *
 from K_means import *
 from classify_mushroom import *
-# from classify_mushroom2 import *
 from clustering import *
 from classification import *
 

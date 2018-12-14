@@ -6,8 +6,9 @@ from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn import metrics, preprocessing
 from sklearn.ensemble import RandomForestClassifier
 
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, LabelBinarizer
 
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 
@@ -318,6 +319,99 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test, "e", name)
         return cross_val_acc, y_test, pred
  
+    #knn with missing data filled with mode
+    def KNN_mode(self):
+        '''Using KNN'''
+        self.fill_missing_data_with_mode()
+
+        labels_encoded = self.labels.copy()
+        encode_l = preprocessing.LabelEncoder()
+        # labels_encoded = encode_l.fit_transform(self.labels)
+
+        features_encoded = self.features.copy()
+        encoder = preprocessing.LabelEncoder()
+        for col in range(self.features.shape[1]):
+            features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
+
+        hot_encoder = preprocessing.OneHotEncoder()
+        features_encoded = hot_encoder.fit_transform(features_encoded)
+
+        # features_encoded = features_encoded.astype(np.float)
+        # labels_encoded = labels_encoded.astype(np.float)
+
+        x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(x_train, y_train)
+        pred = knn.predict(x_test)
+         
+        print("KNN|Missing value filled with mode|CV")
+        cross_val_acc = self.cross_validation(knn, features_encoded, labels_encoded)
+        self.metrics(pred, y_test, "e")
+        return cross_val_acc, y_test, pred
+
+    #KNN with missing data rows deleted
+    def KNN_del_rows(self):
+        '''Using KNN'''
+        self.del_missing_value_rows()
+
+        name = "- KNN. Missing value rows deleted"
+
+        features_encoded = np.array([])
+
+        for col in range(self.features.shape[1]):
+            temp = pd.get_dummies(self.features[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                features_encoded = temp
+            else:
+                features_encoded = np.column_stack([features_encoded, temp])
+
+        x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(x_train, y_train)
+        pred = knn.predict(x_test)
+
+        print("KNN|Missing value feature deleted|CV")
+        cross_val_acc = self.cross_validation(knn, features_encoded, self.labels)
+
+        self.metrics(pred, y_test, "e", name)
+        return cross_val_acc, y_test, pred
+
+    #KNN with missing data feature deleted
+    def KNN_del_feat(self):
+        '''Using KNN'''
+        self.delete_missing_val_feature()
+
+        # reduce dimentionality
+        name = "-KNN. Missing featured deleted"
+        # self.PCA(features_encoded)
+        # self.percentage_of_variance(features_encoded, name)
+
+        features_encoded = np.array([])
+
+        for col in range(self.features.shape[1]):
+            temp = pd.get_dummies(self.features[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                features_encoded = temp
+            else:
+                features_encoded = np.column_stack([features_encoded, temp])
+
+        x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(x_train, y_train)
+        pred = knn.predict(x_test)
+
+        print("KNN|Missing value feature deleted|CV")
+        cross_val_acc = self.cross_validation(knn, features_encoded, self.labels)
+        # print("Logistics Regression 1 metrics: ")
+        self.metrics(pred, y_test, "e", name)
+        return cross_val_acc, y_test, pred
+ 
+
 
     #random forest with missing data predicted
     def random_forest_classifier_pred_PCA(self):
@@ -745,15 +839,15 @@ class  ClassifyMushroom:
         return(train_features_encoded, label_train, test_features_encoded)
 
     def metrics(self, predictions, true_labels, recall_label, name=""):
-        accuracy = metrics.accuracy_score(true_labels, predictions)
+        accuracy = round(metrics.accuracy_score(true_labels, predictions), 4)
         confusion_matrix = metrics.confusion_matrix(true_labels, predictions)
-        recall = metrics.recall_score(true_labels, predictions, pos_label=recall_label)
-        # precision = metrics.pr
+        recall = round(metrics.recall_score(true_labels, predictions, pos_label=recall_label), 4)
+        precision = round(metrics.precision_score(true_labels, predictions, pos_label=recall_label), 4)
         print("Accuracy: ",accuracy)
         print("Confusion matrix: \n", confusion_matrix)
         print("Recall: ", recall)
-        # self.roc_curve_acc(true_labels, predictions, name, recall_label)
-        return
+        print("Precision: ", precision)
+        return (accuracy, recall, precision)
 
     def PCA(self, data):
         pca = PCA(n_components=10)
@@ -782,8 +876,16 @@ class  ClassifyMushroom:
     def cross_validation(self, algorithm, features, labels):
         accuracy = cross_val_score(algorithm, features, labels, scoring='accuracy', cv = 10)
         accuracy_percent = accuracy.mean() * 100
-        print("Cross validation accuracy: " , accuracy_percent)
-        return accuracy
+
+        binarizer = LabelBinarizer()
+        labels = binarizer.fit_transform(labels)
+
+        recall = cross_val_score(algorithm, features, labels, scoring= 'recall', cv = 10)
+        recall = recall.mean()
+
+        precision = cross_val_score(algorithm, features, labels, scoring='precision', cv = 10)
+        precision = precision.mean()
+        return accuracy, recall, precision
 
     def roc_curve_acc(self, Y_test, Y_pred, name, pos_lab):
         false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(Y_test, Y_pred, pos_label=pos_lab)
@@ -814,6 +916,10 @@ class  ClassifyMushroom:
         dc_del_rows = self.logistic_regression_del_rows()
         dc_del_feat = self.logistic_regression_del_feat()
 
+        knn_mode = self.KNN_mode()
+        knn_del_rows = self.KNN_del_rows()
+        knn_del_feat = self.KNN_del_feat()
+
 
         # lg_mode_PCA = self.logistic_regression_mode_PCA()
         # lg_del_rows_PCA = self.logistic_regression_del_rows_PCA()
@@ -826,8 +932,11 @@ class  ClassifyMushroom:
         # dc_del_feat_PCA = self.logistic_regression_del_feat_PCA()
 
 
-        accuracies = [0,lg_mode[0], lg_del_rows[0], lg_del_feat[0], 0, dc_mode[0], dc_del_rows[0], dc_del_feat[0]]
-        accuracies_labels = ["lg_pred","lg_mode", "lg_del_rows", "lg_del_feat","dc_pred", "dc_mode", "dc_del_rows", "dc_del_feat"]
+        accuracies = [lg_mode[0][0], lg_del_rows[0][0], lg_del_feat[0][0], dc_mode[0][0], dc_del_rows[0][0], dc_del_feat[0][0], knn_mode[0][0], knn_del_rows[0][0], knn_del_feat[0][0]]
+        recalls = [lg_mode[0][1], lg_del_rows[0][1], lg_del_feat[0][1], dc_mode[0][1], dc_del_rows[0][1], dc_del_feat[0][1], knn_mode[0][1], knn_del_rows[0][1], knn_del_feat[0][1]]
+        precisions = [lg_mode[0][2], lg_del_rows[0][2], lg_del_feat[0][2], dc_mode[0][2], dc_del_rows[0][2], dc_del_feat[0][2], knn_mode[0][2], knn_del_rows[0][2], knn_del_feat[0][2]]
+
+        accuracies_labels = ["lg_mode", "lg_del_rows", "lg_del_feat", "dc_mode", "dc_del_rows", "dc_del_feat", "knn_mode", "knn_del_rows", "knn_del_feat"]
 
         # accuracies_PCA = [0,lg_mode_PCA[0], lg_del_rows_PCA[0], lg_del_feat_PCA[0], 0, dc_mode_PCA[0], dc_del_rows_PCA[0], dc_del_feat_PCA[0]]
         # accuracies_labels = ["lg_pred_PCA","lg_mode_PCA", "lg_del_rows_PCA", "lg_del_feat_PCA","dc_pred_PCA", "dc_mode_PCA", "dc_del_rows_PCA", "dc_del_feat_PCA"]
@@ -850,8 +959,8 @@ class  ClassifyMushroom:
         #     means_PCA.append(mean)
         #     std_dev_PCA.append(std)
 
-       
-        width = 0.25
+        #Plot cross val average accuracies and std dev
+        width = 0.35
         fig, ax = plt.subplots()
         plt1 = ax.bar(x_axis, means, width,  yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
         # plt2 = ax.bar(x_axis+width, means_PCA, width, yerr=std_dev_PCA, align='center', alpha=0.5, ecolor='black', capsize=10, color="darkblue")
@@ -866,16 +975,17 @@ class  ClassifyMushroom:
         plt.savefig("Model accuracy for Mushroom Data.png")
         plt.show()
 
-        true_labels = [lg_mode[1], lg_del_rows[1], lg_del_feat[1],dc_mode[1], dc_del_rows[1], dc_del_feat[1]]
-        predictions = [lg_mode[2], lg_del_rows[2], lg_del_feat[2],dc_mode[2], dc_del_rows[2], dc_del_feat[2]]
-        pos_lbl = [1, "e", "e", 1, "e", "eho"]
-        col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
-        col2 = ["blue", "red", "black", "brown", "green", "cyan"]
-        accuracies_labels = ["lg_mode","lg_del_rows", "lg_del_feat", "dc_mode", "dc_del_rows", "dc_del_feat"]
+        #Plot ROC Curve
+        true_labels = [lg_mode[1], lg_del_rows[1], lg_del_feat[1],dc_mode[1], dc_del_rows[1], dc_del_feat[1], knn_mode[1], knn_del_rows[1], knn_del_feat[1]]
+        predictions = [lg_mode[2], lg_del_rows[2], lg_del_feat[2],dc_mode[2], dc_del_rows[2], dc_del_feat[2], knn_mode[2], knn_del_rows[2], knn_del_feat[2]]
+        pos_lbl = [1, "e", "e", 1, "e", "e"]
+        col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue", "brown", "green", "cyan", "darkblue"]
+        col2 = ["blue", "red", "black", "brown", "green", "cyan", "violet", "gold", "pink"]
+        accuracies_labels = ["lg_mode", "lg_del_rows", "lg_del_feat", "dc_mode", "dc_del_rows", "dc_del_feat", "knn_mode", "knn_del_rows", "knn_del_feat"]
 
         encoder = LabelEncoder()
 
-        for i in range(len(true_labels) - 1):
+        for i in range(len(true_labels)):
             true_labels_new = encoder.fit_transform(true_labels[i])
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
@@ -890,8 +1000,23 @@ class  ClassifyMushroom:
             plt.plot(false_positive_rate, true_positive_rate, color=col2[i], lw=2, label= accuracies_labels[i] + " area = %0.2f)" % roc_auc)
         plt.title("ROC Curve showing various classifiers")
         plt.legend(loc="lower right")
+        plt.tight_layout()
         plt.savefig("ROC Curve multiple curves - Mushroom.jpeg")
         plt.show()
+
+
+        #Plot Recall and Precision
+        plt.title("Recall and precision - Mushroom")
+        plt.xticks(x_axis, accuracies_labels, rotation=90)
+        plt.xlabel('Classifiers')
+        plt.ylabel('Scores')
+        plt.plot(x_axis, recalls, color="cyan", label="Recall") 
+        plt.plot(x_axis, precisions, color="darkblue", label="Precision")
+        plt.legend(loc="lower right")
+        plt.tight_layout()
+        plt.savefig("Recall and precision - Mushroom.jpeg")
+        plt.show()
+
         return
 
 ################################################################################

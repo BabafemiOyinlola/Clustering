@@ -484,6 +484,10 @@ class ClassImbalance:
         tree = DecisionTreeClassifier()
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
+        
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
 
         accuracy = metrics.accuracy_score(y_test, pred)
         print("Decision tree - Accuracy smote data without PCA: ", accuracy)
