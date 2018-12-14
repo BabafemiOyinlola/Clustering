@@ -959,7 +959,7 @@ class ClassImbalance:
         accuracies = [lg_over[0][0],lg_SMOTE[0][0], knn_over[0][0], knn_SMOTE[0][0], dc_over[0][0], dc_SMOTE[0][0]]
         recalls = [lg_over[0][1],lg_SMOTE[0][1], knn_over[0][1], knn_SMOTE[0][1], dc_over[0][1], dc_SMOTE[0][1]]
         precisions = [lg_over[0][2],lg_SMOTE[0][2], knn_over[0][2], knn_SMOTE[0][2], dc_over[0][2], dc_SMOTE[0][2]]
-        accuracies_labels = ["lg_over","lg_SMOTE", "knn_over", "knn_SMOTE", "dtc_over", "dtc_SMOTE"]
+        accuracies_labels = ["LG_over","LG_SMOTE", "KNN_over", "KNN_SMOTE", "DT_over", "DT_SMOTE"]
 
         accuracies_PCA = [lg_over_PCA[0][0], lg_SMOTE_PCA[0][0], knn_over_PCA[0][0], knn_SMOTE_PCA[0][0], dc_over_PCA[0][0], dc_SMOTE_PCA[0][0]]
 
@@ -1002,7 +1002,7 @@ class ClassImbalance:
         predictions = [lg_over[2],lg_SMOTE[2], knn_over[2], knn_SMOTE[2], dc_over[2], dc_SMOTE[2]]
         col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan"]
-        accuracies_labels = ["lg_over","lg_SMOTE", "knn_over", "knn_SMOTE", "dtc_over", "dtc_SMOTE"]
+        accuracies_labels = ["LG_over","LG_SMOTE", "KNN_over", "KNN_SMOTE", "DTC_over", "DTC_SMOTE"]
 
         encoder = LabelEncoder()
 
@@ -1036,23 +1036,3 @@ class ClassImbalance:
 
         return
 
-
-# abalone = ClassImbalance()
-# data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
-
-# abalone.plot_imbalance()
-
-# abalone.logistic_regression_smote()
-# abalone.logistic_regression_smote_PCA()
-# abalone.logistic_regression_oversampled()
-# abalone.logistic_regression_oversampled_PCA()
-# abalone.logistic_regression_undersampled()
-# abalone.logistic_regression_undersampled_PCA()
-# abalone.decision_tree_smote()
-# abalone.decision_tree_smote_PCA()
-# abalone.decision_tree_oversampled()
-# abalone.decision_tree_oversampled_PCA()
-# abalone.decision_tree_undersampled()
-# abalone.decision_tree_undersampled_PCA()
-
-# abalone.plot_metrics()

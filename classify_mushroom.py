@@ -69,14 +69,12 @@ class  ClassifyMushroom:
                 test_features_encoded = np.column_stack([test_features_encoded, temp])
 
         #classifier for main model
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(train_features_encoded, y_train)  
         pred = classifier.predict(test_features_encoded)
 
-        # print("Accuracy:",metrics.accuracy_score(y_test, pred))  
 
         features_encoded = np.vstack([train_features_encoded, test_features_encoded])
-        # labels_encoded = pd.get_dummies(np.vstack([y_train, y_test]))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
 
@@ -108,7 +106,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -138,7 +136,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -153,7 +151,7 @@ class  ClassifyMushroom:
         '''Using Random forest'''
         self.delete_missing_val_feature()
 
-        name = "-LRandom forest. Missing featured deleted"
+        name = "-LRandom forest. Missing feature deleted"
 
         features_encoded = np.array([])
 
@@ -167,7 +165,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -444,20 +442,16 @@ class  ClassifyMushroom:
                 test_features_encoded = np.column_stack([test_features_encoded, temp])
 
         #classifier for main model
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(train_features_encoded, y_train)  
         pred = classifier.predict(test_features_encoded)
 
-        # print("Accuracy:",metrics.accuracy_score(y_test, pred))  
-
         features_encoded = np.vstack([train_features_encoded, test_features_encoded])
-        # labels_encoded = pd.get_dummies(np.vstack([y_train, y_test]))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
 
         name = "Random forests|Missing value predicted"
         print("Random forests|Missing value predicted|CV")
-        # cross_val_acc = self.cross_validation(classifier, features_encoded, labels_encoded)
         cross_val_acc = self.cross_validation(classifier, features_encoded, labels)
 
         self.metrics(pred, y_test, "e", name)
@@ -484,7 +478,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, labels_encoded)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -515,7 +509,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -545,7 +539,7 @@ class  ClassifyMushroom:
 
         x_train, x_test, y_train, y_test = train_test_split(features_encoded, self.labels)
 
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(x_train, y_train)
         pred = classifier.predict(x_test)
 
@@ -818,7 +812,7 @@ class  ClassifyMushroom:
 
         print("##################### HANDLED MISSING DATA IN TRAIN ####################")
         #predict missing values using random forests
-        classifier = RandomForestClassifier(n_estimators=500)
+        classifier = RandomForestClassifier(n_estimators=100)
         classifier.fit(train_features_encoded, label_train)
         missing_values = classifier.predict(train_test_features_encoded)
 
@@ -963,9 +957,9 @@ class  ClassifyMushroom:
 
 
         # dc_pred = self.random_forest_classifier_pred()
-        dc_mode = self.random_forest_classifier_mode()
-        dc_del_rows = self.logistic_regression_del_rows()
-        dc_del_feat = self.logistic_regression_del_feat()
+        rf_mode = self.random_forest_classifier_mode()
+        rf_del_rows = self.logistic_regression_del_rows()
+        rf_del_feat = self.logistic_regression_del_feat()
 
         knn_mode = self.KNN_mode()
         knn_del_rows = self.KNN_del_rows()
@@ -983,11 +977,11 @@ class  ClassifyMushroom:
         # dc_del_feat_PCA = self.logistic_regression_del_feat_PCA()
 
 
-        accuracies = [lg_mode[0][0], lg_del_rows[0][0], lg_del_feat[0][0], dc_mode[0][0], dc_del_rows[0][0], dc_del_feat[0][0], knn_mode[0][0], knn_del_rows[0][0], knn_del_feat[0][0]]
-        recalls = [lg_mode[0][1], lg_del_rows[0][1], lg_del_feat[0][1], dc_mode[0][1], dc_del_rows[0][1], dc_del_feat[0][1], knn_mode[0][1], knn_del_rows[0][1], knn_del_feat[0][1]]
-        precisions = [lg_mode[0][2], lg_del_rows[0][2], lg_del_feat[0][2], dc_mode[0][2], dc_del_rows[0][2], dc_del_feat[0][2], knn_mode[0][2], knn_del_rows[0][2], knn_del_feat[0][2]]
+        accuracies = [lg_mode[0][0], lg_del_rows[0][0], lg_del_feat[0][0], rf_mode[0][0], rf_del_rows[0][0], rf_del_feat[0][0], knn_mode[0][0], knn_del_rows[0][0], knn_del_feat[0][0]]
+        recalls = [lg_mode[0][1], lg_del_rows[0][1], lg_del_feat[0][1], rf_mode[0][1], rf_del_rows[0][1], rf_del_feat[0][1], knn_mode[0][1], knn_del_rows[0][1], knn_del_feat[0][1]]
+        precisions = [lg_mode[0][2], lg_del_rows[0][2], lg_del_feat[0][2], rf_mode[0][2], rf_del_rows[0][2], rf_del_feat[0][2], knn_mode[0][2], knn_del_rows[0][2], knn_del_feat[0][2]]
 
-        accuracies_labels = ["lg_mode", "lg_del_rows", "lg_del_feat", "dc_mode", "dc_del_rows", "dc_del_feat", "knn_mode", "knn_del_rows", "knn_del_feat"]
+        accuracies_labels = ["LG_mode", "LG_del_rows", "LG_del_feat", "RF_mode", "RF_del_rows", "RF_del_feat", "KNN_mode", "KNN_del_rows", "KNN_del_feat"]
 
         # accuracies_PCA = [0,lg_mode_PCA[0], lg_del_rows_PCA[0], lg_del_feat_PCA[0], 0, dc_mode_PCA[0], dc_del_rows_PCA[0], dc_del_feat_PCA[0]]
         # accuracies_labels = ["lg_pred_PCA","lg_mode_PCA", "lg_del_rows_PCA", "lg_del_feat_PCA","dc_pred_PCA", "dc_mode_PCA", "dc_del_rows_PCA", "dc_del_feat_PCA"]
@@ -1027,12 +1021,12 @@ class  ClassifyMushroom:
         plt.show()
 
         #Plot ROC Curve
-        true_labels = [lg_mode[1], lg_del_rows[1], lg_del_feat[1],dc_mode[1], dc_del_rows[1], dc_del_feat[1], knn_mode[1], knn_del_rows[1], knn_del_feat[1]]
-        predictions = [lg_mode[2], lg_del_rows[2], lg_del_feat[2],dc_mode[2], dc_del_rows[2], dc_del_feat[2], knn_mode[2], knn_del_rows[2], knn_del_feat[2]]
+        true_labels = [lg_mode[1], lg_del_rows[1], lg_del_feat[1],rf_mode[1], rf_del_rows[1], rf_del_feat[1], knn_mode[1], knn_del_rows[1], knn_del_feat[1]]
+        predictions = [lg_mode[2], lg_del_rows[2], lg_del_feat[2],rf_mode[2], rf_del_rows[2], rf_del_feat[2], knn_mode[2], knn_del_rows[2], knn_del_feat[2]]
         pos_lbl = [1, "e", "e", 1, "e", "e"]
         col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue", "brown", "green", "cyan", "darkblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan", "violet", "gold", "pink"]
-        accuracies_labels = ["lg_mode", "lg_del_rows", "lg_del_feat", "dc_mode", "dc_del_rows", "dc_del_feat", "knn_mode", "knn_del_rows", "knn_del_feat"]
+        accuracies_labels = ["LG_mode", "LG_del_rows", "LG_del_feat", "RF_mode", "RF_del_rows", "RF_del_feat", "KNN_mode", "KNN_del_rows", "KNN_del_feat"]
 
         encoder = LabelEncoder()
 

@@ -149,7 +149,6 @@ class KMeans:
         try:
             if self.k == None:
                 raise Exception("")
-                return
             else:
                 #Calculate time:
                 start_time = time.process_time() #start time
