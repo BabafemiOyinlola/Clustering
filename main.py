@@ -12,30 +12,30 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-#Save plots for data and standardized data
-test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
-test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
+# #Save plots for data and standardized data
+# test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
+# test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
 
 #************************************************************************************************************#
 #**********************************************CLUSTERING****************************************************#
 #************************************************************************************************************#
-#K-means clustering
-kmeans = KMeans(4)
-kmeans.iterate(standardised_data)
-kmeans.plot("K-means Clustered Data")
+# #K-means clustering
+# kmeans = KMeans(4)
+# kmeans.iterate(standardised_data)
+# kmeans.plot("K-means Clustered Data")
 
-#Hierachical clustering
-HC = HierachicalClustering(standardised_data)
-HC.cluster(standardised_data, 12, "Location dendrogram")
+# #Hierachical clustering
+# HC = HierachicalClustering(standardised_data)
+# HC.cluster(standardised_data, 12, "Location dendrogram ")
 
-#K-means clustering without outliers
-kmeans = KMeans(4)
-kmeans.iterate(no_outliers_data)
-kmeans.plot("K-means Clustered Data - Without Outliers")
+# #K-means clustering without outliers
+# kmeans = KMeans(4)
+# kmeans.iterate(no_outliers_data)
+# kmeans.plot("K-means Clustered Data - Without Outliers")
 
-#Hierachical clustering without outliers
-HC = HierachicalClustering(no_outliers_data)
-HC.cluster(no_outliers_data, 12, "Location dendrogram without outliers ")
+# #Hierachical clustering without outliers
+# HC = HierachicalClustering(no_outliers_data)
+# HC.cluster(no_outliers_data, 12, "Location dendrogram without outliers ")
 #************************************************************************************************************#
 #************************************************************************************************************#
 
@@ -44,12 +44,11 @@ HC.cluster(no_outliers_data, 12, "Location dendrogram without outliers ")
 #************************************************************************************************************#
 #**************************************************MUSHROOM**************************************************#
 #************************************************************************************************************#
-mushroom =  ClassifyMushroom()
-mushroom_data = mushroom.read_mushroom_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
-mushroom.plot_metrics()
+# mushroom = ClassifyMushroom()
+# mushroom_data = mushroom.read_mushroom_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
+# mushroom.plot_metrics()
 #************************************************************************************************************#
 #************************************************************************************************************#
-
 
 
 #************************************************************************************************************#

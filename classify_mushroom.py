@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import random
 import scikitplot as skplt
 from sklearn.decomposition import PCA, TruncatedSVD
 from sklearn import metrics, preprocessing
@@ -31,7 +32,6 @@ class  ClassifyMushroom:
             read.close()
             labels = data_array[:, 0]
             features =  np.delete(data_array, obj=0, axis=1)
-            # data_array = []
             
             self.features = features
             self.labels = labels
@@ -41,8 +41,8 @@ class  ClassifyMushroom:
         
     #random forest with missing data predicted
     def random_forest_classifier_pred(self):
-        '''Using random forests'''
-        x_train, x_test, y_train, y_test = train_test_split(self.features, self.labels, test_size=0.3)
+        '''Using random forests after predicing missing values'''
+        x_train, x_test, y_train, y_test = self.split_for_missing_data_pred()
 
         #train missign data model with training data
         #Fill missing data in training set; x_train
@@ -179,7 +179,7 @@ class  ClassifyMushroom:
 
     #logistic regression with missing data predicted
     def logistic_regression_pred(self):
-        x_train, x_test, y_train, y_test = train_test_split(self.features, self.labels, test_size=0.3)
+        x_train, x_test, y_train, y_test = self.split_for_missing_data_pred()
 
         #train missign data model with training data
         #Fill missing data in training set; x_train
@@ -697,6 +697,58 @@ class  ClassifyMushroom:
         self.metrics(pred, y_test, "e", name)
         return cross_val_acc, y_test, pred
  
+
+    def split_for_missing_data_pred(self):
+        data = self.data
+
+        has_missing_val = []
+        no_missing_val = []
+
+        train, test = [], []
+
+        for row in range(data.shape[0]):
+            if data[row, 11] == "?":
+                has_missing_val.append(data[row])
+            else:
+                no_missing_val.append(data[row])
+
+        has_missing_val = np.array(has_missing_val)
+        no_missing_val = np.array(no_missing_val)
+        
+        #split in 30% test and 70% train
+        missing_val_num = int(0.3 * len(has_missing_val))
+        no_missing_val_num = int(0.3 * len(no_missing_val))
+
+        for i in range(missing_val_num):
+            index = random.randint(0, (len(has_missing_val)-1))
+            item = has_missing_val[index]
+            test.append(item)         
+            has_missing_val = np.delete(has_missing_val, obj=index, axis=0)
+        
+        for i in range(no_missing_val_num):
+            index = random.randint(0, (len(no_missing_val)-1))
+            item = no_missing_val[index]
+            test.append(item)         
+            no_missing_val = np.delete(no_missing_val, obj=index, axis=0)
+
+        test = np.array(test)
+
+        for i in range(len(has_missing_val)):
+            train.append(has_missing_val[i])
+        for i in range(len(no_missing_val)):
+            train.append(no_missing_val[i])
+        
+        train = np.array(train)
+
+        y_train = train[:, 0]
+        x_train = np.delete(train, obj=0, axis=1)
+
+        y_test = test[:, 0]
+        x_test = np.delete(test, obj=0, axis=1)
+
+        return  (x_train, x_test, y_train, y_test)
+
+
     #handle missing data by filling with mode
     def fill_missing_data_with_mode(self):
         miss_col = self.features[:, 10]
