@@ -10,8 +10,9 @@ from sklearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, LabelBinarizer
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 
 from pre_processing import Preprocessing
 
@@ -111,11 +112,8 @@ class ClassImbalance:
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy over sampled data without PCA: ", accuracy)
-        print()
-        self.metrics(pred, y_test)
-        # self.roc_curve_acc(y_test, pred, "Logisitic Regression oversampled data without PCA:")
+        print("Logisitic Regression - Accuracy over sampled data without PCA")
+        matrics = self.metrics(pred, y_test)
         print()
         
         features = np.vstack((features_train, features_test))
@@ -123,7 +121,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(reg, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def logistic_regression_undersampled(self):
         train, test = self.process_and_split_data()
@@ -158,15 +156,15 @@ class ClassImbalance:
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy under sampled data without PCA: ", accuracy)
         print()
+        print("Logisitic Regression - Accuracy under sampled data without PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def logistic_regression_smote(self):
 
@@ -203,18 +201,17 @@ class ClassImbalance:
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy over smote without PCA: ", accuracy)
-        print()
-        self.metrics(pred, y_test)
-        print()
-        
+        # accuracy = metrics.accuracy_score(y_test, pred)
+        # print("Logisitic Regression - Accuracy over smote without PCA: ", accuracy)
+        print("Logisitic Regression - Accuracy over smote without PCA")
+        metrics = self.metrics(pred, y_test)
+
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def logistic_regression_smote_PCA(self):
 
@@ -254,12 +251,9 @@ class ClassImbalance:
         #PCA
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy smote with PCA: ", accuracy)
-        print()
-        self.metrics(pred, y_test)
+        print("Logisitic Regression - Accuracy smote with PCA")
+        metrics = self.metrics(pred, y_test)
         print()
         
         features = np.vstack((features_train, features_test))
@@ -267,7 +261,7 @@ class ClassImbalance:
 
         cross_val_acc = self.cross_validation(reg, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def logistic_regression_oversampled_PCA(self):
         train, test = self.process_and_split_data()
@@ -301,21 +295,21 @@ class ClassImbalance:
         #PCA
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         reg = LogisticRegression()
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy over sampled data after PCA: ", accuracy)
+        
         print()
+        print("Logisitic Regression - Accuracy over sampled data after PCA")
+        metrics = self.metrics(pred, y_test)
         
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
 
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def logistic_regression_undersampled_PCA(self):
         train, test = self.process_and_split_data()
@@ -350,20 +344,19 @@ class ClassImbalance:
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
 
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
-
         reg = LogisticRegression()
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Logisitic Regression - Accuracy under sampled data after PCA: ", accuracy)
         print()
+        print("Logisitic Regression - Accuracy under sampled data after PCA")
+        metrics = self.metrics(pred, y_test)
+
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(reg, features, labels)
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def decision_tree_oversampled(self):
         train, test = self.process_and_split_data()
@@ -398,15 +391,15 @@ class ClassImbalance:
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy over sampled data without PCA: ", accuracy)
         print()
+        print("Decision tree - Accuracy over sampled data without PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def decision_tree_undersampled(self):
         train, test = self.process_and_split_data()
@@ -441,15 +434,16 @@ class ClassImbalance:
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy under sampled data without PCA: ", accuracy)
+
         print()
+        print("Decision tree - Accuracy under sampled data without PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
     
     def decision_tree_smote(self):
         train, test = self.process_and_split_data()
@@ -485,15 +479,15 @@ class ClassImbalance:
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy smote data without PCA: ", accuracy)
         print()
+        print("Decision tree - Accuracy smote data without PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def decision_tree_smote_PCA(self):
         train, test = self.process_and_split_data()
@@ -528,21 +522,20 @@ class ClassImbalance:
         #PCA
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         tree = DecisionTreeClassifier()
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy smote with PCA: ", accuracy)
         print()
+        print("Decision tree - Accuracy smote data with PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def decision_tree_oversampled_PCA(self):
         train, test = self.process_and_split_data()
@@ -576,21 +569,20 @@ class ClassImbalance:
          #PCA
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         tree = DecisionTreeClassifier()
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy over sampled data after PCA: ", accuracy)
         print()
+        print("Decision tree - Accuracy over sampled data with PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
 
     def decision_tree_undersampled_PCA(self):
         train, test = self.process_and_split_data()
@@ -624,21 +616,207 @@ class ClassImbalance:
         #PCA
         features_train = self.PCA(features_train, 5)
         features_test = self.PCA(features_test, 5)
-        variance = self.percentage_of_variance(features_train, "Abalone", 5) 
 
         tree = DecisionTreeClassifier()
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-        accuracy = metrics.accuracy_score(y_test, pred)
-        print("Decision tree - Accuracy under sampled data after PCA: ", accuracy)
         print()
+        print("Decision tree - Accuracy under sampled data with PCA")
+        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 
         cross_val_acc = self.cross_validation(tree, features, labels)
        
-        return cross_val_acc, y_test, pred
+        return cross_val_acc, y_test, pred, metrics
+
+    def KNN_smote(self):
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+        
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
+
+        print()
+        print("KNN - Accuracy smote data without PCA")
+        metrics = self.metrics(pred, y_test)
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(knn, features, labels)
+       
+        return cross_val_acc, y_test, pred, metrics
+
+    def KNN_oversampled(self):
+        train, test = self.process_and_split_data()
+
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
+
+        print()
+        print("KNN - Accuracy over sampled data without PCA")
+        metrics = self.metrics(pred, y_test)
+
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(knn, features, labels)
+       
+        return cross_val_acc, y_test, pred, metrics
+  
+    def KNN_smote_PCA(self):
+
+        train, test = self.process_and_split_data()
+
+        x_train = np.delete(train, obj=8, axis=1)
+        y_train = train[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+        
+        #Handle imbalance
+        features_train, y_train = self.smote(features_train, y_train)
+        
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+
+        print()
+        print("KNN - Accuracy smote with PCA")  
+        metrics = self.metrics(pred, y_test)
+        print()
+        
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(knn, features, labels)
+       
+        return cross_val_acc, y_test, pred, metrics
+
+    def KNN_oversampled_PCA(self):
+        train, test = self.process_and_split_data()
+
+        train_oversampled = self.pre_process_oversample(1219, "positive", train)
+
+        x_train = np.delete(train_oversampled, obj=8, axis=1)
+        y_train = train_oversampled[:, 8]
+        x_test = np.delete(test, obj=8, axis=1)
+        y_test = test[:, 8]
+
+        new_col = pd.get_dummies(x_train[:, 0])
+        new_col2 = pd.get_dummies(x_test[:, 0])
+
+        #create new columns for sex class
+        new_col = np.array(new_col)
+        new_col2 = np.array(new_col2)
+        #add the new columns to features
+        features_train = np.column_stack([x_train, new_col])
+        features_test = np.column_stack([x_test, new_col2])
+
+        #delete sex column 
+        features_train =  np.delete(features_train, obj=0, axis=1)
+        features_test =  np.delete(features_test, obj=0, axis=1)
+
+        #standardize data
+        preprocess = Preprocessing()
+        features_train = preprocess.standardize_data(features_train)
+        features_test = preprocess.standardize_data(features_test)
+
+        #PCA
+        features_train = self.PCA(features_train, 5)
+        features_test = self.PCA(features_test, 5)
+
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
+
+        print()
+        print("KNN - Accuracy oversampled with PCA")  
+        metrics = self.metrics(pred, y_test)
+        
+        features = np.vstack((features_train, features_test))
+        labels = np.vstack((y_train[:, None], y_test[:, None]))
+
+        cross_val_acc = self.cross_validation(knn, features, labels)
+
+        return cross_val_acc, y_test, pred, metrics
 
     def plot_imbalance(self):
         data = self.data
@@ -730,62 +908,59 @@ class ClassImbalance:
 
         return (train, test)
 
-    # def process_split_PCA(self, data):
-    #     labels  = data[:, 8]
-    #     features =  np.delete(data, obj=8, axis=1)
-
-    #     #one hot encode sex
-    #     new_col = pd.get_dummies(features[:, 0])
-    #     #create new columns for sex class
-    #     new_col = np.array(new_col)
-    #     #add the new columns to features
-    #     features = np.column_stack([features, new_col])
-    #     #delete sex column 
-    #     features =  np.delete(features, obj=0, axis=1)
-
-    #     features = self.PCA(features, 5)
-    #     variance = self.percentage_of_variance(features, "Abalone", 5) 
-    #     x_train, x_test, y_train, y_test = train_test_split(features, labels, test_size=0.3)
-
-    #     return (x_train, x_test, y_train, y_test)
-
     def metrics(self, predictions, true_labels, name=""):
-        accuracy = metrics.accuracy_score(true_labels, predictions)
+        accuracy = round(metrics.accuracy_score(true_labels, predictions), 4)
         confusion_matrix = metrics.confusion_matrix(true_labels, predictions)
-        # recall = metrics.recall_score(true_labels, predictions)
-        # precision = metrics.pr
+        recall = round(metrics.recall_score(true_labels, predictions, pos_label="positive"), 4)
+        precision = round(metrics.precision_score(true_labels, predictions, pos_label="positive"), 4)
         print("Accuracy: ",accuracy)
-        print("Confusion matrix: ", confusion_matrix)
-        # print("Recall: ",recall)
-        # self.roc_curve_acc(true_labels, predictions, name)
-        return
+        print("Confusion matrix: \n", confusion_matrix)
+        print("Recall: ", recall)
+        print("Precision: ", precision)
+        return (accuracy, recall, precision)
 
     def cross_validation(self,algorithm, features, labels):
         accuracy = cross_val_score(algorithm, features, labels, scoring='accuracy', cv = 10)
         accuracy_percent = accuracy.mean() * 100
-        print("Cross validation accuracy: " , accuracy_percent)
-        return accuracy
+
+        binarizer = LabelBinarizer()
+        labels = binarizer.fit_transform(labels)
+
+        recall = cross_val_score(algorithm, features, labels, scoring= 'recall', cv = 10)
+        recall = recall.mean()
+
+        precision = cross_val_score(algorithm, features, labels, scoring='precision', cv = 10)
+        precision = precision.mean()
+        return accuracy, recall, precision
 
     def plot_metrics(self):
-        lg_over = abalone.logistic_regression_oversampled()
-        lg_over_PCA = abalone.logistic_regression_oversampled_PCA()
-        lg_under = abalone.logistic_regression_undersampled()
-        lg_under_PCA = abalone.logistic_regression_undersampled_PCA()
-        lg_SMOTE = abalone.logistic_regression_smote()
-        lg_SMOTE_PCA = abalone.logistic_regression_smote_PCA()
+        lg_over = self.logistic_regression_oversampled()
+        lg_over_PCA = self.logistic_regression_oversampled_PCA()
+        lg_SMOTE = self.logistic_regression_smote()
+        lg_SMOTE_PCA = self.logistic_regression_smote_PCA()
+        
+        # lg_under = self.logistic_regression_undersampled()
+        # lg_under_PCA = self.logistic_regression_undersampled_PCA()
 
-        dc_over = abalone.decision_tree_oversampled()
-        dc_over_PCA = abalone.decision_tree_oversampled_PCA()
-        dc_under = abalone.decision_tree_undersampled()
-        dc_under_PCA = abalone.decision_tree_undersampled_PCA()
-        dc_SMOTE = abalone.decision_tree_smote()
-        dc_SMOTE_PCA = abalone.decision_tree_smote_PCA()
+        dc_over = self.decision_tree_oversampled()
+        dc_over_PCA = self.decision_tree_oversampled_PCA()
+        dc_SMOTE = self.decision_tree_smote()
+        dc_SMOTE_PCA = self.decision_tree_smote_PCA()
+        
+        # dc_under = self.decision_tree_undersampled()
+        # dc_under_PCA = self.decision_tree_undersampled_PCA()
 
-        accuracies = [lg_over[0],lg_under[0], lg_SMOTE[0], dc_over[0], dc_under[0], dc_SMOTE[0]]
-        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
+        knn_over = self.KNN_oversampled()
+        knn_SMOTE = self.KNN_smote()
+        knn_over_PCA = self.KNN_oversampled_PCA()
+        knn_SMOTE_PCA = self.KNN_smote_PCA()
 
-        accuracies_PCA = [lg_under_PCA[0], lg_over_PCA[0], lg_SMOTE_PCA[0], dc_over_PCA[0], dc_under_PCA[0], dc_over_PCA[0]]
-        accuracies_labels_PCA = ["lg_under_PCA", "lg_over_PCA", "lg_SMOTE_PCA", "dtc_over_PCA", "dtc_under_PCA", "dtc_SMOTE_PCA"]
+        accuracies = [lg_over[0][0],lg_SMOTE[0][0], knn_over[0][0], knn_SMOTE[0][0], dc_over[0][0], dc_SMOTE[0][0]]
+        recalls = [lg_over[0][1],lg_SMOTE[0][1], knn_over[0][1], knn_SMOTE[0][1], dc_over[0][1], dc_SMOTE[0][1]]
+        precisions = [lg_over[0][2],lg_SMOTE[0][2], knn_over[0][2], knn_SMOTE[0][2], dc_over[0][2], dc_SMOTE[0][2]]
+        accuracies_labels = ["lg_over","lg_SMOTE", "knn_over", "knn_SMOTE", "dtc_over", "dtc_SMOTE"]
+
+        accuracies_PCA = [lg_over_PCA[0][0], lg_SMOTE_PCA[0][0], knn_over_PCA[0][0], knn_SMOTE_PCA[0][0], dc_over_PCA[0][0], dc_SMOTE_PCA[0][0]]
 
         means, means_PCA = [], []
         std_dev, std_dev_PCA = [], []
@@ -805,7 +980,7 @@ class ClassImbalance:
             means_PCA.append(mean)
             std_dev_PCA.append(std)
 
-       
+        #Plot cross val average accuracies and std dev
         width = 0.25
         fig, ax = plt.subplots()
         plt1 = ax.bar(x_axis, means, width,  yerr=std_dev, align='center', alpha=0.5, ecolor='black', capsize=10)
@@ -821,22 +996,21 @@ class ClassImbalance:
         plt.savefig("Model accuracy for Abalone - Class Imbalance")
         plt.show()
 
-
-        true_labels = [lg_over[1],lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
-        predictions = [lg_over[2],lg_under[2], lg_SMOTE_PCA[2], dc_over[2], dc_under[2], dc_SMOTE_PCA[2]]
+        #Plot ROC Curve
+        true_labels = [lg_over[1],lg_SMOTE[1], knn_over[1], knn_SMOTE[1], dc_over[1], dc_SMOTE[1]]
+        predictions = [lg_over[2],lg_SMOTE[2], knn_over[2], knn_SMOTE[2], dc_over[2], dc_SMOTE[2]]
         col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan"]
-        accuracies_labels = ["lg_over","lg_under", "lg_SMOTE", "dtc_over", "dtc_under", "dtc_SMOTE"]
+        accuracies_labels = ["lg_over","lg_SMOTE", "knn_over", "knn_SMOTE", "dtc_over", "dtc_SMOTE"]
 
         encoder = LabelEncoder()
 
-        for i in range(len(true_labels) - 1):
+        for i in range(len(true_labels)):
             true_labels_new = encoder.fit_transform(true_labels[i])
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
             roc_auc = metrics.auc(false_positive_rate, true_positive_rate)
         
-            #plt.figure()
             plt.xlabel('False Positive Rate')
             plt.ylabel('True Positive Rate')
             plt.plot([0, 1], [0, 1], color=col1[i], linestyle='--')
@@ -848,13 +1022,24 @@ class ClassImbalance:
         plt.savefig("ROC Curve multiple curves.jpeg")
         plt.show()
 
+        #Plot Recall and Precision
+        plt.title("Recall and precision - Abalone")
+        plt.xticks(x_axis, accuracies_labels)
+        plt.xlabel('Classifiers')
+        plt.ylabel('Scores')
+        plt.plot(x_axis, recalls, color="cyan", label="Recall") 
+        plt.plot(x_axis, precisions, color="darkblue", label="Precision")
+        plt.legend(loc="lower right")
+        plt.savefig("Recall and precision - Abalone.jpeg")
+        plt.show()
+
         return
 
 
-# abalone = ClassImbalance()
-# data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
+abalone = ClassImbalance()
+data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 
-# # abalone.plot_imbalance()
+# abalone.plot_imbalance()
 
 # abalone.logistic_regression_smote()
 # abalone.logistic_regression_smote_PCA()
@@ -869,4 +1054,4 @@ class ClassImbalance:
 # abalone.decision_tree_undersampled()
 # abalone.decision_tree_undersampled_PCA()
 
-# abalone.plot_metrics()
+abalone.plot_metrics()

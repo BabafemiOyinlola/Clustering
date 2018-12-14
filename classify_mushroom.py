@@ -315,13 +315,11 @@ class  ClassifyMushroom:
         print("Accuracy: ",accuracy)
         print("Confusion matrix: ", confusion_matrix)
         print("Recall: ",recall)
-        self.roc_curve_acc(true_labels, predictions, name)
         return
 
     def PCA(self, data):
         pca = TruncatedSVD(n_components=22)
         pca.fit(data)
-        cof = pca.components_
         trasform_data = pca.transform(data)
         return trasform_data
 
