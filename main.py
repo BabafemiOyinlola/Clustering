@@ -1,7 +1,7 @@
 from pre_processing import *
 from K_means import *
-# from classify_mushroom import *
-from classify_mushroom2 import *
+from classify_mushroom import *
+# from classify_mushroom2 import *
 from clustering import *
 from classification import *
 
@@ -20,10 +20,11 @@ from classification import *
 # HC = HierachicalClustering(dataset)
 # HC.calc()
 
-# mushroom =  ClassifyMushroom()
-mushroom =  ClassifyMushroom2()
+mushroom =  ClassifyMushroom()
+# mushroom =  ClassifyMushroom2()
 
 mushroom_data = mushroom.read_mushroom_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
+mushroom.plot_metrics()
 # mushroom = ClassifyMushroom(mushroom_data)
 
 # mushroom.delete_missing_val_feature()
@@ -31,7 +32,7 @@ mushroom_data = mushroom.read_mushroom_data("/Users/oyinlola/Desktop/MSc Data Sc
 # mushroom.logistic_regression_del_feat()
 # mushroom.logistic_regression_del_rows()
 
-mushroom.main_logistic_regression()
+# mushroom.main_logistic_regression()
 
 
 # mushroom_logistic_reg = mushroom.random_forest_classifier1()

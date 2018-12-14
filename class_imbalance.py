@@ -822,7 +822,7 @@ class ClassImbalance:
         plt.show()
 
 
-        true_labels = [lg_over[1],lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
+        true_labels = [lg_over[1], lg_under[1], lg_SMOTE[1], dc_over[1], dc_under[1], dc_SMOTE[1]]
         predictions = [lg_over[2],lg_under[2], lg_SMOTE_PCA[2], dc_over[2], dc_under[2], dc_SMOTE_PCA[2]]
         col1 = ["yellow", "m", "grey", "pink", "salmon", "cadetblue"]
         col2 = ["blue", "red", "black", "brown", "green", "cyan"]
@@ -830,7 +830,7 @@ class ClassImbalance:
 
         encoder = LabelEncoder()
 
-        for i in range(len(true_labels) - 1):
+        for i in range(len(true_labels)):
             true_labels_new = encoder.fit_transform(true_labels[i])
             predictions_new = encoder.fit_transform(predictions[i])
             false_positive_rate, true_positive_rate, thresholds = metrics.roc_curve(true_labels_new,predictions_new, pos_label=1)
@@ -845,14 +845,14 @@ class ClassImbalance:
             plt.plot(false_positive_rate, true_positive_rate, color=col2[i], lw=2, label= accuracies_labels[i] + " area = %0.2f)" % roc_auc)
         plt.title("ROC Curve showing various classifiers")
         plt.legend(loc="lower right")
-        plt.savefig("ROC Curve multiple curves.jpeg")
+        plt.savefig("ROC Curve multiple curves - Abalone.jpeg")
         plt.show()
 
         return
 
 
-# abalone = ClassImbalance()
-# data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
+abalone = ClassImbalance()
+data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 
 # # abalone.plot_imbalance()
 
@@ -869,4 +869,4 @@ class ClassImbalance:
 # abalone.decision_tree_undersampled()
 # abalone.decision_tree_undersampled_PCA()
 
-# abalone.plot_metrics()
+abalone.plot_metrics()
