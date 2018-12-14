@@ -72,7 +72,7 @@ class KMeans:
             elif k <= 0:
                 self.k = None
                 raise Exception("Number of clusters is invalid")
-            elif k < 1:
+            elif k == 1:
                 self.k = None
                 raise Exception("Minimum clusters input is 2")    
             else:

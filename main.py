@@ -3,7 +3,6 @@ from pre_processing import *
 from classification import *
 from class_imbalance import *
 from classify_mushroom import *
-from classify_mushroom2 import *
 
 test = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/Joensuu.txt")
 dataset = test.read_data_Joensuu()
@@ -13,9 +12,9 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-# #Save plots for data and standardized data
-# test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
-# test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
+#Save plots for data and standardized data
+test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
+test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
 
 #************************************************************************************************************#
 #**********************************************CLUSTERING****************************************************#
@@ -45,13 +44,12 @@ HC.cluster(no_outliers_data, 12, "Location dendrogram without outliers ")
 #************************************************************************************************************#
 #**************************************************MUSHROOM**************************************************#
 #************************************************************************************************************#
-mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.txt")
-mushroom_data = mushroom_init.read_mushroom_data()
-mushroom = ClassifyMushroom(mushroom_data)
-# # pred1 = mushroom.random_forest_classifier()
-# # pred2 = mushroom.logistic_regression()
+mushroom =  ClassifyMushroom()
+mushroom_data = mushroom.read_mushroom_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.csv")
+mushroom.plot_metrics()
 #************************************************************************************************************#
 #************************************************************************************************************#
+
 
 
 #************************************************************************************************************#

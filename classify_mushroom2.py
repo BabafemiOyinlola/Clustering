@@ -1,267 +1,149 @@
 from sklearn import preprocessing
 import numpy as np
+import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 from sklearn.linear_model import LogisticRegression
 
 class  ClassifyMushroom2:
-    def __init__ (self, data):
-        self.features = data[0]
-        self.labels = data[1]
+    def __init__ (self):
+        self.features = []
+        self.labels = []
 
-    def new_random_forest(self):
+    def read_mushroom_data(self, filepath):
+        read = open(filepath, "r")
+        content = read.readlines()
+        if(len(content) == 0):
+            return
+        else:
+            len_content = len(content[0].rstrip().split(",")) #Split the first line in content to obtain number of columns/ features
+            data_array = np.empty((len(content), len_content), dtype=str) #Create an empty array to store dataitems
+            for line in range(len(content)):
+                data_array[line] = content[line].split(",")
+
+            read.close()
+            labels = data_array[:, 0]
+            features =  np.delete(data_array, obj=0, axis=1)
+            # data_array = []
+            
+            self.features = features
+            self.labels = labels
+            self.data = data_array
+
+            return (data_array)
+
+    def main_logistic_regression(self):
         x_train, x_test, y_train, y_test = train_test_split(self.features, self.labels, test_size=0.3)
 
         #train missign data model with training data
         #Fill missing data in training set; x_train
-        fill_miss_data = self.handle_missing_data2(x_train, x_test)
+        x_train, x_test = self.predict_missing_data(x_train, x_test)
 
-        x_train = fill_miss_data[0]
-        x_test = fill_miss_data[2]
-        missing_data_classifier = fill_miss_data[1]
+        #encode features 
+        train_features_encoded = np.array([])
+        test_features_encoded = np.array([])
 
+        for col in range(x_train.shape[1]):
+            temp = pd.get_dummies(x_train[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                train_features_encoded = temp
+            else:
+                train_features_encoded = np.column_stack([train_features_encoded, temp])
 
-        ####Using random forests to train a model to predict p and e mushrooms####
-        # labels_encoded = y_train
-        encode_l = preprocessing.LabelEncoder()
-        labels_encoded = encode_l.fit_transform(y_train)
+        for col in range(x_test.shape[1]):
+            temp = pd.get_dummies(x_test[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                test_features_encoded = temp
+            else:
+                test_features_encoded = np.column_stack([test_features_encoded, temp])
 
-        features_encoded = x_train
-        encoder = preprocessing.LabelEncoder()
-        for col in range(self.features.shape[1]):
-            features_encoded[:, col] = encoder.fit_transform(x_train[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        features_encoded = hot_encoder.fit_transform(features_encoded)
-
-        classifier = RandomForestClassifier(n_estimators=10)
-        classifier.fit(features_encoded, y_train)   #classifier for main model
-
-        #Predict missing values in x_test
-        # get_params = self.missing_data(x_test)
-        # feature_train = get_params[0]
-        # feature_test = get_params[1]
-        # content = get_params[2]
-
-        # # missing_data_classifier.fit(feature_train, content)
-        # missing_values = missing_data_classifier.predict(feature_test)
-        # x_test = self.fill_missing_data(x_test, missing_values)
-        
-        test_features_encoded = x_test
-        for col in range(self.features.shape[1]):
-            test_features_encoded[:, col] = encoder.fit_transform(x_test[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        # features_encoded = np.array(features_encoded)
-        test_features_encoded = hot_encoder.fit_transform(features_encoded.toarray())
-
+        #classifier for main model
+        classifier = LogisticRegression()
+        classifier.fit(train_features_encoded, y_train)  
         pred = classifier.predict(test_features_encoded)
 
         print("Accuracy:",metrics.accuracy_score(y_test, pred))  
 
         return
         
-    def handle_missing_data2(self, train_data, test_data):
+    def predict_missing_data(self, train_data, test_data):
         '''In the mushroom dataset, there are missing values. Here, it is handled.'''
         #Select row with missing values and divide into test and training data used to train. 
-        get_params = self.missing_data(train_data)
-        feature_train = get_params[0]
-        feature_test = get_params[1]
-        content = get_params[2]
 
+        get_train_params = self.missing_data(train_data)
+        train_features_encoded = get_train_params[0]
+        label_train = get_train_params[1]
+        train_test_features_encoded = get_train_params[2]
+
+        print("##################### HANDLED MISSING DATA IN TRAIN ####################")
         #predict missing values using random forests
         classifier = RandomForestClassifier(n_estimators=500)
-        classifier.fit(feature_train, content)
-        missing_values = classifier.predict(feature_test)
+        classifier.fit(train_features_encoded, label_train)
+        missing_values = classifier.predict(train_test_features_encoded)
 
-        get_params2 = self.missing_data(test_data)
-        feature_train2 = get_params2[0]
-        feature_test2 = get_params2[1]
-        content2 = get_params2[2]
+        #fill missing training label with missing values predicted
+        count = 0
+        for item in range(len(train_data)):
+            if train_data[item, 10] == "?":
+                train_data[item, 10] = missing_values[count]
+                count += 1
 
-        missing_values2 = classifier.predict(feature_test2)
+        get_test_params = self.missing_data(test_data)
+        test_features_encoded = get_test_params[0]
+        label_test = get_test_params[1]
+        test_features_encoded = get_test_params[2]
+        print("Handling missing data in test set")
+        missing_values2 = classifier.predict(test_features_encoded)
 
-        #Fill features with predicted missing values
-        train_data = self.fill_missing_data(train_data, missing_values)
-        test_data = self.fill_missing_data(test_data,missing_values2)
+        print("#####################HANDLED MISSING DATA IN TEST ####################")
+        count = 0
+        for item in range(len(test_data)):
+            if test_data[item, 10] == "?":
+                test_data[item, 10] = missing_values2[count]
+                count += 1
 
-        return (train_data, classifier, test_data)
+        return (train_data, test_data)
 
     def missing_data(self, train_data):
-        missing_value_col = train_data[:, 10]
-        content = []
-        val = []
+        train_set = []
+        test_set = []
 
-        for item in range(len(missing_value_col)):
-            if missing_value_col[item] == "?":
-                val.append(missing_value_col[item])
+        for item in range(len(train_data)):
+            if train_data[item, 10] == "?":
+                test_set.append(train_data[item])
             else:
-                content.append(missing_value_col[item])
+                train_set.append(train_data[item])
    
-        content = np.array(content)
-        val = np.array(val)
+        train_set = np.array(train_set)
+        test_set = np.array(test_set)
 
-        new_features = np.delete(train_data, obj=10, axis=1) #drop col with missing values: '?'
+        #label here is the feature with missing values 
+        label_train = train_set[:, 10]
+        label_test = test_set[:, 10]
 
-        #encode features 
-        new_features_encoded = new_features.copy()
+        train_set = np.delete(train_set, obj=10, axis=1)
+        test_set = np.delete(test_set, obj=10, axis=1)
 
-        encoder = preprocessing.LabelEncoder()
+        features_combined = np.vstack((train_set, test_set))
+        all_feat = np.array([])
 
-        #convert to numerical variables first using label encoder
-        for col in range(new_features.shape[1]):
-            new_features_encoded[:, col] = encoder.fit_transform(new_features[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        #now convert using one hot encoder
-        new_features_encoded = hot_encoder.fit_transform(new_features_encoded)
-
-        random = np.arange(new_features_encoded.shape[0])
-        np.random.shuffle(random)
-        feature_train = new_features_encoded[random[:len(content)], :]
-        feature_test = new_features_encoded[random[len(content):], :]
-
-        feature_train = feature_train.astype(np.float)
-        feature_test = feature_test.astype(np.float)
-
-        return(feature_train, feature_test, content)
-
-    def fill_missing_data(self, train_data, predicted_vals):
-        count = 0
-        update_features = train_data
-        for col in range(train_data.shape[0]):
-            if train_data[col, 10] == "?":
-                print("Before: ", train_data[col,:])
-                update_features[col, 10] = predicted_vals[count]
-                count += 1
-                print("After: ",update_features[col,:])
-
-        print("Count end: ", count)
-        if count == len(predicted_vals):
-            train_data  = update_features
-            print("Missing values handled.")
-        
-        return(train_data)
-
-    def random_forest_classifier(self):
-        '''Using random forests'''
-        #self.handle_missing_data()
-
-        labels_encoded = self.labels.copy()
-        encode_l = preprocessing.LabelEncoder()
-        labels_encoded = encode_l.fit_transform(self.labels)
-
-        features_encoded = self.features.copy()
-        encoder = preprocessing.LabelEncoder()
-        for col in range(self.features.shape[1]):
-            features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        hot_encoder.fit_transform(features_encoded)
-
-        x_train, x_test, y_train, y_test = train_test_split(features_encoded, labels_encoded, test_size=0.3)
-
-        classifier = RandomForestClassifier(n_estimators=10)
-        classifier.fit(x_train, y_train)
-        pred = classifier.predict(x_test)
-
-        print("Accuracy:",metrics.accuracy_score(y_test, pred)) 
-
-        return
-
-    def logistic_regression(self):
-        '''Using Logistic Regression'''
-        self.handle_missing_data()
-
-        labels_encoded = self.labels.copy()
-        encode_l = preprocessing.LabelEncoder()
-        labels_encoded = encode_l.fit_transform(self.labels)
-
-        features_encoded = self.features.copy()
-        encoder = preprocessing.LabelEncoder()
-        for col in range(self.features.shape[1]):
-            features_encoded[:, col] = encoder.fit_transform(self.features[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        hot_encoder.fit_transform(features_encoded)
-
-        features_encoded = features_encoded.astype(np.float)
-        labels_encoded = labels_encoded.astype(np.float)
-
-        x_train, x_test, y_train, y_test = train_test_split(features_encoded, labels_encoded, test_size=0.3)
-
-        reg = LogisticRegression()
-        reg.fit(x_train, y_train)
-        pred = reg.predict(x_test)
-        conf_matrix = metrics.confusion_matrix(y_test, pred)
-        print("Confusion matrix: ", conf_matrix)
-        print("Accuracy:",metrics.accuracy_score(y_test, pred)) 
-        return
-
-    def handle_missing_data(self):
-        '''In the mushroom dataset, there are missing values. Here, it is handled.'''
-        #Select row with missing values and divide into test and training data used to train. 
-        missing_value_col = self.features[:, 10]
-        content = []
-        val = []
-        for item in range(len(missing_value_col)):
-            if missing_value_col[item] == "?":
-                val.append(missing_value_col[item])
+        for col in range(features_combined.shape[1]):
+            temp = pd.get_dummies(features_combined[:, col])
+            temp = np.array(temp)
+            if col == 0:
+                all_feat = temp
             else:
-                content.append(missing_value_col[item])
-   
-        content = np.array(content)
-        val = np.array(val)
+                all_feat = np.column_stack([all_feat, temp])
 
-        new_features = np.delete(self.features, obj=10, axis=1) #drop col with missing values: '?'
 
-        #encode features 
-        new_features_encoded = new_features.copy()
+        feature_train = all_feat[0:len(train_set)]
+        feature_test = all_feat[len(train_set): len(features_combined)]
 
-        encoder = preprocessing.LabelEncoder()
+        train_features_encoded = feature_train
+        test_features_encoded = feature_test
+    
+        return(train_features_encoded, label_train, test_features_encoded)
 
-        #convert to numerical variables first using label encoder
-        for col in range(new_features.shape[1]):
-            new_features_encoded[:, col] = encoder.fit_transform(new_features[:, col])
-
-        hot_encoder = preprocessing.OneHotEncoder()
-        #now convert using one hot encoder
-        new_features_encoded = hot_encoder.fit_transform(new_features_encoded)
-
-        random = np.arange(new_features_encoded.shape[0])
-        np.random.shuffle(random)
-        feature_train = new_features_encoded[random[:len(content)], :]
-        feature_test = new_features_encoded[random[len(content):], :]
-
-        feature_train = feature_train.astype(np.float)
-        feature_test = feature_test.astype(np.float)
-
-        #predict missing values using random forests
-        classifier = RandomForestClassifier(n_estimators=500)
-        classifier.fit(feature_train, content)
-        missing_values = classifier.predict(feature_test)
-
-        update_features = self.features
-        count = 0
-
-        #Fill features with predicted missing values
-        for col in range(self.features.shape[0]):
-            if self.features[col, 10] == "?":
-                print("Before: ",self.features[col,:])
-                update_features[col, 10] = missing_values[count]
-                count += 1
-                print("After: ",update_features[col,:])
-
-        print("Count end: ", count)
-        if count == len(missing_values):
-            self.features = update_features
-            print("Missing values handled.")
-
-        #Can't calculate the accuracy of the model since I do not have test values to compare against
-        # print("Accuracy:",metrics.accuracy_score(val, missing_values)) 
-        return
-
-    def metrics(self):
-
-        return

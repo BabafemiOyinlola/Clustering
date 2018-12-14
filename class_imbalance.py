@@ -201,8 +201,6 @@ class ClassImbalance:
         reg.fit(features_train, y_train)
         pred = reg.predict(features_test)
 
-        # accuracy = metrics.accuracy_score(y_test, pred)
-        # print("Logisitic Regression - Accuracy over smote without PCA: ", accuracy)
         print("Logisitic Regression - Accuracy over smote without PCA")
         metrics = self.metrics(pred, y_test)
 
@@ -434,7 +432,6 @@ class ClassImbalance:
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
 
-
         print()
         print("Decision tree - Accuracy under sampled data without PCA")
         metrics = self.metrics(pred, y_test)
@@ -478,10 +475,14 @@ class ClassImbalance:
         tree = DecisionTreeClassifier()
         tree.fit(features_train, y_train)
         pred = tree.predict(features_test)
+        
+        knn = KNeighborsClassifier(n_neighbors=7)
+        knn.fit(features_train, y_train)
+        pred = knn.predict(features_test)
 
+        accuracy = metrics.accuracy_score(y_test, pred)
+        print("Decision tree - Accuracy smote data without PCA: ", accuracy)
         print()
-        print("Decision tree - Accuracy smote data without PCA")
-        metrics = self.metrics(pred, y_test)
         features = np.vstack((features_train, features_test))
         labels = np.vstack((y_train[:, None], y_test[:, None]))
 

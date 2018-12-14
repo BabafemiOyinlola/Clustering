@@ -108,20 +108,3 @@ class Preprocessing:
         plt.savefig(title + ".jpeg" ,bbox_inches= "tight")
         plt.show()
         return
-        
-    def read_mushroom_data(self):
-        read = open(self.filepath, "r")
-        content = read.readlines()
-        if(len(content) == 0):
-            return
-        else:
-            len_content = len(content[0].rstrip().split(",")) #Split the first line in content to obtain number of columns/ features
-            data_array = np.empty((len(content), len_content), dtype=str) #Create an empty array to store dataitems
-            for line in range(len(content)):
-                data_array[line] = content[line].split(",")
-
-            read.close()
-            labels = data_array[:, 0]
-            features =  np.delete(data_array, obj=0, axis=1)
-            data_array = []
-            return (features, labels)
