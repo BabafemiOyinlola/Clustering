@@ -13,9 +13,9 @@ normalised_data = test.normalise_data(standardised_data)
 centralized_data = test.centralise(normalised_data)
 transformed_data = test.PCA(centralized_data)
 
-#Save plots for data and standardized data
-test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
-test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
+# #Save plots for data and standardized data
+# test.plot(dataset, "Latitude", "Longitude", "User Location - JOENSUU")
+# test.plot(standardised_data, "Latitude", "Longitude", "Standardised Location Data")
 
 #************************************************************************************************************#
 #**********************************************CLUSTERING****************************************************#
@@ -48,8 +48,8 @@ HC.cluster(no_outliers_data, 12, "Location dendrogram without outliers ")
 mushroom_init = Preprocessing("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/Coursework/mushroom.txt")
 mushroom_data = mushroom_init.read_mushroom_data()
 mushroom = ClassifyMushroom(mushroom_data)
-# pred1 = mushroom.random_forest_classifier()
-# pred2 = mushroom.logistic_regression()
+# # pred1 = mushroom.random_forest_classifier()
+# # pred2 = mushroom.logistic_regression()
 #************************************************************************************************************#
 #************************************************************************************************************#
 

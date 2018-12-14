@@ -1036,8 +1036,8 @@ class ClassImbalance:
         return
 
 
-abalone = ClassImbalance()
-data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
+# abalone = ClassImbalance()
+# data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data Mining/abalone19.txt")
 
 # abalone.plot_imbalance()
 
@@ -1054,4 +1054,4 @@ data = abalone.read_data("/Users/oyinlola/Desktop/MSc Data Science/SCC403 - Data
 # abalone.decision_tree_undersampled()
 # abalone.decision_tree_undersampled_PCA()
 
-abalone.plot_metrics()
+# abalone.plot_metrics()
